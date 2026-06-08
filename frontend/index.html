@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WMS 3PL — Test UI</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="/config.js"></script>
+</head>
+<body>
+  <header>
+    <h1>WMS 3PL Test Console</h1>
+    <p>Frontend on Vercel · Backend on Railway · Database on Supabase</p>
+  </header>
+
+  <main>
+    <section class="card config-card">
+      <h2>1. Connection & Tenant</h2>
+      <div class="grid-2">
+        <label>
+          API Base URL (Railway)
+          <input type="text" id="baseUrl" placeholder="https://your-app.up.railway.app" />
+        </label>
+        <label>
+          Invoice Month (YYYY-MM)
+          <input type="text" id="invoiceMonth" value="2025-12" />
+        </label>
+        <label>
+          x-client-id
+          <input type="text" id="clientId" placeholder="From Load Seed IDs" />
+        </label>
+        <label>
+          x-user-id
+          <input type="text" id="userId" placeholder="From Load Seed IDs" />
+        </label>
+      </div>
+      <div class="btn-row">
+        <button type="button" id="loadSeedBtn" class="btn secondary">Load Seed IDs</button>
+        <button type="button" id="useClientABtn" class="btn secondary">Use Client A</button>
+        <button type="button" id="useClientBBtn" class="btn secondary">Use Client B</button>
+        <button type="button" id="saveConfigBtn" class="btn">Save Config</button>
+      </div>
+      <p id="seedStatus" class="hint"></p>
+    </section>
+
+    <section class="card">
+      <h2>2. Quick Actions</h2>
+      <div class="btn-row">
+        <button type="button" data-action="inventory" class="btn">List Inventory</button>
+        <button type="button" data-action="billing" class="btn">Generate Invoice</button>
+        <button type="button" data-action="audit" class="btn">Audit Logs</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>3. Inventory Transfer</h2>
+      <div class="grid-2">
+        <label>
+          Product ID
+          <input type="text" id="productId" />
+        </label>
+        <label>
+          Quantity
+          <input type="number" id="quantity" value="20" min="1" />
+        </label>
+        <label>
+          From Bin ID
+          <input type="text" id="fromBinId" />
+        </label>
+        <label>
+          To Bin ID
+          <input type="text" id="toBinId" />
+        </label>
+        <label>
+          Batch Number
+          <input type="text" id="batchNumber" value="LOT-001" />
+        </label>
+        <label>
+          Expiry Date
+          <input type="date" id="expiryDate" value="2027-01-01" />
+        </label>
+      </div>
+      <div class="btn-row">
+        <button type="button" id="transferBtn" class="btn primary">Execute Transfer</button>
+        <button type="button" id="fillClientABtn" class="btn secondary">Fill Client A Example</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>4. Get Invoice by ID</h2>
+      <div class="grid-2">
+        <label>
+          Invoice ID
+          <input type="text" id="invoiceId" placeholder="From generate invoice response" />
+        </label>
+      </div>
+      <button type="button" id="getInvoiceBtn" class="btn">Get Invoice</button>
+    </section>
+
+    <section class="card">
+      <h2>5. Edge Case Tests</h2>
+      <div class="btn-row">
+        <button type="button" id="testInsufficientBtn" class="btn danger">Insufficient Stock (qty 9999)</button>
+        <button type="button" id="testSameBinBtn" class="btn danger">Same Bin Transfer</button>
+        <button type="button" id="testNoTenantBtn" class="btn danger">Missing Tenant Header</button>
+      </div>
+    </section>
+
+    <section class="card response-card">
+      <div class="response-header">
+        <h2>Response</h2>
+        <span id="statusBadge" class="badge">—</span>
+      </div>
+      <pre id="responseOutput">Run an action to see the API response here.</pre>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

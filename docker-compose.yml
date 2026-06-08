@@ -1,0 +1,22 @@
+# Optional — only if you have Docker installed and prefer PostgreSQL locally.
+# 1. docker compose up -d
+# 2. Change prisma/schema.prisma provider to "postgresql"
+# 3. Set DATABASE_URL in .env to the postgres URL below
+# 4. npm run setup
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: wms_3pl_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: wms_3pl
+    ports:
+      - "5432:5432"
+    volumes:
+      - wms_pg_data:/var/lib/postgresql/data
+
+volumes:
+  wms_pg_data:

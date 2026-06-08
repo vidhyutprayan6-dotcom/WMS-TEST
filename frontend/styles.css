@@ -1,0 +1,176 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #0f1419;
+  color: #e7ecf3;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+header {
+  background: linear-gradient(135deg, #1a3a5c 0%, #0f1419 100%);
+  border-bottom: 1px solid #2a3f5f;
+  padding: 1.5rem 2rem;
+}
+
+header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+header p {
+  color: #8ba3bf;
+  margin-top: 0.25rem;
+  font-size: 0.95rem;
+}
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card {
+  background: #1a2332;
+  border: 1px solid #2a3f5f;
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+
+.card h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #7eb8ff;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: #8ba3bf;
+}
+
+input {
+  background: #0f1419;
+  border: 1px solid #2a3f5f;
+  border-radius: 6px;
+  color: #e7ecf3;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.875rem;
+  font-family: 'Consolas', monospace;
+}
+
+input:focus {
+  outline: none;
+  border-color: #4a90d9;
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.btn {
+  background: #2a4a6b;
+  border: 1px solid #3d6a9e;
+  border-radius: 6px;
+  color: #e7ecf3;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  transition: background 0.15s;
+}
+
+.btn:hover {
+  background: #3d6a9e;
+}
+
+.btn.primary {
+  background: #1a6b3c;
+  border-color: #2a9d5c;
+}
+
+.btn.primary:hover {
+  background: #2a9d5c;
+}
+
+.btn.secondary {
+  background: #2a3544;
+  border-color: #3d4f63;
+}
+
+.btn.danger {
+  background: #5c1a1a;
+  border-color: #9e3d3d;
+}
+
+.btn.danger:hover {
+  background: #9e3d3d;
+}
+
+.hint {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: #6a8499;
+}
+
+.response-card pre {
+  background: #0a0e14;
+  border: 1px solid #2a3f5f;
+  border-radius: 6px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.8rem;
+  max-height: 420px;
+  overflow: auto;
+  padding: 1rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.response-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.badge {
+  background: #2a3544;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.65rem;
+}
+
+.badge.ok {
+  background: #1a4a2a;
+  color: #6fcf97;
+}
+
+.badge.err {
+  background: #4a1a1a;
+  color: #ff8a8a;
+}

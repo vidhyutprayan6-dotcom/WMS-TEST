@@ -1,0 +1,221 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum BillingType {
+  PALLET
+  VOLUME
+}
+
+enum UserRole {
+  ADMIN
+  SUPERVISOR
+  OPERATOR
+}
+
+enum MovementType {
+  INBOUND
+  OUTBOUND
+  TRANSFER
+  ADJUSTMENT
+}
+
+model Client {
+  id          String      @id @default(uuid())
+  name        String
+  billingType BillingType
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  users         User[]
+  products      Product[]
+  inventory     Inventory[]
+  stockMovements StockMovement[]
+  billingRates  BillingRate[]
+  invoices      Invoice[]
+
+  @@map("clients")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  clientId  String
+  name      String
+  email     String   @unique
+  role      UserRole
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client         Client          @relation(fields: [clientId], references: [id])
+  stockMovements StockMovement[]
+
+  @@index([clientId])
+  @@map("users")
+}
+
+model Warehouse {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bins      Bin[]
+  inventory Inventory[]
+
+  @@map("warehouses")
+}
+
+model Bin {
+  id              String   @id @default(uuid())
+  warehouseId     String
+  code            String
+  capacityPallets Int
+  capacityM3      Float
+  currentPallets  Int      @default(0)
+  currentM3       Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  warehouse        Warehouse       @relation(fields: [warehouseId], references: [id])
+  inventory        Inventory[]
+  stockMovementsFrom StockMovement[] @relation("FromBin")
+  stockMovementsTo   StockMovement[] @relation("ToBin")
+
+  @@unique([warehouseId, code])
+  @@map("bins")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  clientId    String
+  sku         String
+  name        String
+  unitVolume  Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  client         Client          @relation(fields: [clientId], references: [id])
+  inventory      Inventory[]
+  stockMovements StockMovement[]
+
+  @@unique([clientId, sku])
+  @@index([clientId])
+  @@map("products")
+}
+
+model Inventory {
+  id          String    @id @default(uuid())
+  clientId    String
+  productId   String
+  warehouseId String
+  binId       String
+  batchNumber String
+  expiryDate  DateTime  @db.Date
+  quantity    Int
+  palletCount Int       @default(0)
+  volumeM3    Float     @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  client    Client    @relation(fields: [clientId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+  bin       Bin       @relation(fields: [binId], references: [id])
+
+  @@unique([clientId, productId, binId, batchNumber, expiryDate])
+  @@index([clientId])
+  @@map("inventory")
+}
+
+model StockMovement {
+  id           String       @id @default(uuid())
+  clientId     String
+  productId    String
+  fromBinId    String?
+  toBinId      String?
+  batchNumber  String
+  expiryDate   DateTime     @db.Date
+  quantity     Int
+  beforeQty    Int
+  afterQty     Int
+  movedBy      String
+  movementType MovementType
+  createdAt    DateTime     @default(now())
+
+  client  Client  @relation(fields: [clientId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+  fromBin Bin?    @relation("FromBin", fields: [fromBinId], references: [id])
+  toBin   Bin?    @relation("ToBin", fields: [toBinId], references: [id])
+  user    User    @relation(fields: [movedBy], references: [id])
+
+  @@index([clientId])
+  @@map("stock_movements")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  clientId    String?
+  entityType  String
+  entityId    String
+  action      String
+  performedBy String
+  oldValue    Json?
+  newValue    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([clientId])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+model BillingRate {
+  id           String   @id @default(uuid())
+  clientId     String   @unique
+  storageRate  Float
+  inboundRate  Float
+  outboundRate Float
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id])
+
+  @@map("billing_rates")
+}
+
+model Invoice {
+  id            String   @id @default(uuid())
+  clientId      String
+  invoiceMonth  String
+  storageTotal  Float
+  inboundTotal  Float
+  outboundTotal Float
+  grandTotal    Float
+  createdAt     DateTime @default(now())
+
+  client    Client            @relation(fields: [clientId], references: [id])
+  lineItems InvoiceLineItem[]
+
+  @@unique([clientId, invoiceMonth])
+  @@index([clientId])
+  @@map("invoices")
+}
+
+model InvoiceLineItem {
+  id          String @id @default(uuid())
+  invoiceId   String
+  description String
+  quantity    Float
+  rate        Float
+  amount      Float
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_line_items")
+}
