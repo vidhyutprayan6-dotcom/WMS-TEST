@@ -3,7 +3,13 @@ dist/
 .env
 *.log
 .DS_Store
-prisma/dev.db
-prisma/dev.db-journal
-prisma/*.db
-prisma/*.db-journal
+
+# Backend
+backend/node_modules/
+backend/dist/
+backend/.env
+backend/prisma/*.db
+backend/prisma/*.db-journal
+
+# Frontend
+frontend/config.js

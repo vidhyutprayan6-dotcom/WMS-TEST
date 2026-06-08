@@ -2,6 +2,7 @@
  * Validates Supabase env vars and runs migrate + seed.
  * Usage: node scripts/db-setup.js
  */
+require('dotenv').config();
 const { execSync } = require('child_process');
 
 function checkEnv() {
