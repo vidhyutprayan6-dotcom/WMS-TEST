@@ -77,8 +77,8 @@ Or open `frontend/index.html` and set API Base URL to `http://localhost:3000`.
 | Backend | `backend/` | [Railway](https://railway.app) |
 | Frontend | `frontend/` | [Vercel](https://vercel.com) |
 
-See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for the full deploy guide.  
-See **[CONNECT.md](./CONNECT.md)** for connecting Vercel ↔ Railway ↔ Supabase (env vars).
+See **[RUN.md](./RUN.md)** for step-by-step local + production instructions.  
+See **[CONNECT.md](./CONNECT.md)** for connecting Vercel ↔ Railway ↔ Supabase.
 
 ## API headers (multi-tenant)
 

@@ -131,7 +131,9 @@ These are **not** Railway or Vercel keys — they come from your database seed.
 
 | Problem | Solution |
 |---------|----------|
-| Railway build fails | Ensure latest code pushed with root `Dockerfile` + `railway.toml` |
+| `EPERM` on `npm run build` (Windows) | Stop `npm run dev` first (Ctrl+C), then build |
+| Railway build fails at `prisma generate` | Push latest code (Dockerfile fix). Redeploy. |
+| Railway build fails (general) | Ensure `Dockerfile` at repo root. Root Directory = `/` |
 | CORS error in browser | Set `FRONTEND_URL` on Railway to exact Vercel URL |
 | Load Seed IDs fails | Run `npm run prisma:seed` — check Railway `/api/config/seed-info` |
 | 502 on Railway | Check Railway logs — usually missing `DATABASE_URL` |
