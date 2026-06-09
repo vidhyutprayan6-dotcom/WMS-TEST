@@ -32,17 +32,17 @@ Monorepo for the 3PL/4PL test task with separate frontend and backend deployment
 └── README.md
 ```
 
-## Features
+## Features (client test scope only)
 
-| Feature | Backend endpoint |
-|---------|------------------|
-| 3PL Storage Billing | `POST /api/billing/generate` |
-| Inventory Transfer | `POST /api/inventory/transfer` |
-| List Inventory | `GET /api/inventory` |
-| Get Invoice | `GET /api/invoices/:id` |
-| Audit Logs | `GET /api/audit-logs` |
-| Seed Info (for UI) | `GET /api/config/seed-info` |
-| Swagger Docs | `GET /api/docs` |
+| Requirement | Backend endpoint |
+|-------------|------------------|
+| **A. Storage Billing** — pallets × daily rate or M³, inbound/outbound fees | `POST /api/billing/generate`, `GET /api/invoices/:id` |
+| **B. Stock Transfer** — bin-to-bin, batch/lot + expiry, multi-tenant | `POST /api/inventory/transfer`, `GET /api/inventory` |
+| **Audit trail** — who, when, before/after qty | `GET /api/audit-logs` |
+| Test UI seed IDs | `GET /api/config/seed-info` |
+| API documentation | `GET /api/docs` |
+
+Database design: see `backend/docs/SCHEMA.md`. SQL setup: `backend/supabase/schema.sql` then `seed.sql`.
 
 ## Quick start (local)
 
