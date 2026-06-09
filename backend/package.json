@@ -14,7 +14,8 @@
     "db:reset": "prisma migrate reset --force",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "test:apis": "node scripts/test-apis.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
