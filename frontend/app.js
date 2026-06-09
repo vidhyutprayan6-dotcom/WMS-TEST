@@ -180,24 +180,57 @@ function saveConfig(silent = false) {
 
 function updateStatusBar() {
   const baseUrl = getBaseUrl();
+  const host = baseUrl.replace(/^https?:\/\//, '');
   const conn = $('connectionStatus');
   if (conn) {
-    conn.textContent = baseUrl.replace(/^https?:\/\//, '');
-    conn.className = 'status-pill';
+    conn.innerHTML = `<span class="status-dot"></span> ${escapeHtml(host)}`;
+    conn.className = 'status-dot-label';
   }
-  const tenant = $('tenantStatus');
+
   const clientId = ($('clientId').value || '').trim();
   const userId = ($('userId').value || '').trim();
-  if (tenant) {
-    if (clientId && userId) {
-      tenant.textContent = seedInfo?.clients?.clientA?.id === clientId ? 'Client A' :
-        seedInfo?.clients?.clientB?.id === clientId ? 'Client B' : 'Tenant set';
-      tenant.className = 'status-pill';
+  const tenant = $('tenantStatus');
+  let tenantLabel = 'No tenant';
+  let activeClient = null;
+
+  if (clientId && userId) {
+    if (seedInfo?.clients?.clientA?.id === clientId) {
+      tenantLabel = 'Client A';
+      activeClient = 'clientA';
+    } else if (seedInfo?.clients?.clientB?.id === clientId) {
+      tenantLabel = 'Client B';
+      activeClient = 'clientB';
     } else {
-      tenant.textContent = 'No tenant';
-      tenant.className = 'status-pill muted';
+      tenantLabel = 'Tenant set';
     }
   }
+
+  if (tenant) {
+    tenant.innerHTML = `<span class="status-dot"></span> ${escapeHtml(tenantLabel)}`;
+    tenant.className = clientId && userId ? 'status-dot-label' : 'status-dot-label muted';
+  }
+
+  const metricApi = $('metricApi');
+  if (metricApi) metricApi.textContent = host;
+
+  const metricTenant = $('metricTenant');
+  if (metricTenant) metricTenant.textContent = tenantLabel;
+
+  const metricMonth = $('metricMonth');
+  if (metricMonth) metricMonth.textContent = $('invoiceMonth').value || '2025-12';
+
+  updateClientPills(activeClient);
+}
+
+function updateClientPills(activeKey) {
+  $('useClientABtn')?.classList.toggle('active', activeKey === 'clientA');
+  $('useClientBBtn')?.classList.toggle('active', activeKey === 'clientB');
+}
+
+function setMetricStatus(status, ok) {
+  const el = $('metricStatus');
+  if (!el) return;
+  el.textContent = ok ? `${status} OK` : status ? `${status} Failed` : 'Error';
 }
 
 function escapeHtml(str) {
@@ -357,6 +390,7 @@ function showResults(status, data, method, path) {
   const badge = $('statusBadge');
   badge.textContent = status || '—';
   badge.className = 'badge ' + (status >= 200 && status < 300 ? 'ok' : 'err');
+  setMetricStatus(status, status >= 200 && status < 300);
 
   $('jsonOutput').textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
   $('jsonOutput').classList.add('hidden');
@@ -469,7 +503,7 @@ function renderConditions(testId) {
   $('testTitle').textContent = test.title;
   $('testSummary').textContent = test.summary;
   $('runTestBtn').textContent = test.runLabel || 'Run Test';
-  $('runTestBtn').className = test.edge ? 'btn danger' : 'btn primary';
+  $('runTestBtn').className = test.edge ? 'btn-danger' : 'btn-primary';
 
   const container = $('conditionsBody');
   const v = (key) => ($(key)?.value || '').trim();
@@ -487,7 +521,7 @@ function renderConditions(testId) {
         <label>x-client-id<input type="text" data-field="clientId" value="${escapeHtml(v('clientId'))}" placeholder="Auto-filled from seed" /></label>
         <label>x-user-id<input type="text" data-field="userId" value="${escapeHtml(v('userId'))}" placeholder="Auto-filled from seed" /></label>
       </div>
-      <p class="hint">Click "Load Seed IDs" in the header — Client A is applied automatically.</p>`;
+      <p class="hint">Click <strong>Load Seed IDs</strong> above — Client A is applied automatically.</p>`;
     return;
   }
 
@@ -500,7 +534,7 @@ function renderConditions(testId) {
       <div class="grid-1">
         <label>Invoice Month (YYYY-MM)<input type="text" data-field="invoiceMonth" value="${escapeHtml(v('invoiceMonth') || '2025-12')}" /></label>
       </div>
-      <p class="hint">Invoice is generated as a formatted PDF in the results panel.</p>`;
+      <p class="hint">Results appear as a formatted table and PDF preview.</p>`;
     return;
   }
 
@@ -697,6 +731,14 @@ $('downloadPdfBtn').addEventListener('click', () => {
   }
   InvoicePdf.download({ data: lastInvoiceData });
   showToast('success', 'PDF downloaded', `invoice-${lastInvoiceData.month}.pdf`);
+});
+
+$('navSearch')?.addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('.nav-item').forEach((btn) => {
+    const match = btn.textContent.toLowerCase().includes(q);
+    btn.classList.toggle('hidden-by-search', Boolean(q) && !match);
+  });
 });
 
 loadConfig();

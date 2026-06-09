@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WMS 3PL — Test Platform</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css" />
   <script src="/config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
@@ -12,77 +15,176 @@
 </head>
 <body>
   <div class="app-shell">
-    <header class="topbar">
-      <div class="topbar-brand">
-        <img src="/assets/logo.svg" alt="WMS 3PL" class="brand-logo" width="180" height="40" />
-        <span class="topbar-title">Test Platform</span>
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">
+          <img src="/assets/logo.svg" alt="" width="36" height="36" />
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">WMS 3PL</span>
+          <span class="brand-sub">Test Platform</span>
+        </div>
       </div>
-      <div class="topbar-status">
-        <span id="connectionStatus" class="status-pill">Not connected</span>
-        <span id="tenantStatus" class="status-pill muted">No tenant</span>
-      </div>
-      <div class="topbar-actions">
-        <button type="button" id="loadSeedBtn" class="btn btn-sm secondary">Load Seed IDs</button>
-        <button type="button" id="useClientABtn" class="btn btn-sm secondary">Client A</button>
-        <button type="button" id="useClientBBtn" class="btn btn-sm secondary">Client B</button>
-      </div>
-    </header>
 
-    <div class="app-body">
-      <aside class="sidebar">
-        <div class="sidebar-section">
-          <h3 class="sidebar-heading">Setup</h3>
-          <button type="button" class="nav-item active" data-test="setup">Connection & Tenant</button>
-        </div>
-        <div class="sidebar-section">
-          <h3 class="sidebar-heading">Core API Tests</h3>
-          <button type="button" class="nav-item" data-test="inventory">List Inventory</button>
-          <button type="button" class="nav-item" data-test="billing">Generate Invoice</button>
-          <button type="button" class="nav-item" data-test="transfer">Inventory Transfer</button>
-          <button type="button" class="nav-item" data-test="audit">Audit Logs</button>
-        </div>
-        <div class="sidebar-section">
-          <h3 class="sidebar-heading">Validation Tests</h3>
-          <button type="button" class="nav-item" data-test="edge-insufficient">Insufficient Stock</button>
-          <button type="button" class="nav-item" data-test="edge-samebin">Same Bin Transfer</button>
-          <button type="button" class="nav-item" data-test="edge-notenant">Missing Tenant</button>
-        </div>
-      </aside>
+      <div class="sidebar-search">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="search" id="navSearch" placeholder="Search tests..." autocomplete="off" />
+      </div>
 
-      <main class="workspace">
-        <section class="panel panel-conditions">
-          <div class="panel-head">
-            <h2 id="testTitle">Connection & Tenant</h2>
-            <p id="testSummary" class="panel-subtitle">Configure API URL and tenant headers. Seed data auto-fills test conditions.</p>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">
+          <h3 class="sidebar-heading">Overview</h3>
+          <button type="button" class="nav-item active" data-test="setup">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            Connection & Tenant
+          </button>
+        </div>
+        <div class="sidebar-section">
+          <h3 class="sidebar-heading">Management</h3>
+          <button type="button" class="nav-item" data-test="inventory">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            List Inventory
+          </button>
+          <button type="button" class="nav-item" data-test="billing">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Generate Invoice
+          </button>
+          <button type="button" class="nav-item" data-test="transfer">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            Inventory Transfer
+          </button>
+          <button type="button" class="nav-item" data-test="audit">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+            Audit Logs
+          </button>
+        </div>
+        <div class="sidebar-section">
+          <h3 class="sidebar-heading">Configuration</h3>
+          <button type="button" class="nav-item" data-test="edge-insufficient">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Insufficient Stock
+          </button>
+          <button type="button" class="nav-item" data-test="edge-samebin">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            Same Bin Transfer
+          </button>
+          <button type="button" class="nav-item" data-test="edge-notenant">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Missing Tenant
+          </button>
+        </div>
+      </nav>
+    </aside>
+
+    <div class="main-wrap">
+      <header class="page-topbar">
+        <div class="breadcrumb">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Test Platform</span>
+        </div>
+        <div class="topbar-right">
+          <span id="connectionStatus" class="status-dot-label"><span class="status-dot"></span> API</span>
+          <span id="tenantStatus" class="status-dot-label muted"><span class="status-dot"></span> No tenant</span>
+          <div class="avatar" title="WMS Tester">W</div>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <div class="page-header">
+          <div class="page-header-text">
+            <h1 id="testTitle">Connection & Tenant</h1>
+            <p id="testSummary" class="page-desc">Configure API URL and tenant headers. Seed data auto-fills all test conditions.</p>
           </div>
-          <div id="conditionsBody" class="panel-body"></div>
-          <div class="panel-foot">
-            <button type="button" id="runTestBtn" class="btn primary">Run Test</button>
-          </div>
-        </section>
-
-        <section class="panel panel-results">
-          <div class="panel-head results-head">
-            <div>
-              <h2>Results</h2>
-              <p class="panel-subtitle">Response output for the selected test</p>
+          <div class="page-actions">
+            <div class="pill-group">
+              <button type="button" id="useClientABtn" class="pill">Client A</button>
+              <button type="button" id="useClientBBtn" class="pill">Client B</button>
             </div>
-            <div class="results-toolbar">
-              <span id="statusBadge" class="badge">—</span>
-              <button type="button" id="downloadPdfBtn" class="btn btn-sm secondary hidden">Load PDF</button>
-              <button type="button" id="toggleJsonBtn" class="btn btn-sm secondary hidden">Show JSON</button>
+            <button type="button" id="loadSeedBtn" class="btn-outline">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Load Seed IDs
+            </button>
+          </div>
+        </div>
+
+        <div class="metrics-row">
+          <div class="metric-card">
+            <div class="metric-icon blue">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </div>
+            <div class="metric-body">
+              <span class="metric-label">API Endpoint</span>
+              <span class="metric-value" id="metricApi">—</span>
             </div>
           </div>
-          <div id="resultsBody" class="panel-body results-body">
-            <p class="placeholder">Select a test and click <strong>Run Test</strong>.</p>
+          <div class="metric-card">
+            <div class="metric-icon green">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="metric-body">
+              <span class="metric-label">Active Tenant</span>
+              <span class="metric-value" id="metricTenant">Not set</span>
+            </div>
           </div>
-          <pre id="jsonOutput" class="json-output hidden"></pre>
-        </section>
+          <div class="metric-card">
+            <div class="metric-icon yellow">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div class="metric-body">
+              <span class="metric-label">Last Status</span>
+              <span class="metric-value" id="metricStatus">Ready</span>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon purple">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div class="metric-body">
+              <span class="metric-label">Invoice Month</span>
+              <span class="metric-value" id="metricMonth">2025-12</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace-cards">
+          <section class="card panel-conditions">
+            <div class="card-header">
+              <div class="card-header-left">
+                <svg class="card-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                <h2>Test Conditions</h2>
+              </div>
+            </div>
+            <div id="conditionsBody" class="card-body"></div>
+            <div class="card-footer">
+              <button type="button" id="runTestBtn" class="btn-primary">Save Config</button>
+            </div>
+          </section>
+
+          <section class="card panel-results">
+            <div class="card-header">
+              <div class="card-header-left">
+                <svg class="card-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <h2>Results</h2>
+              </div>
+              <div class="results-toolbar">
+                <span id="statusBadge" class="badge">—</span>
+                <button type="button" id="downloadPdfBtn" class="btn-outline btn-sm hidden">Load PDF</button>
+                <button type="button" id="toggleJsonBtn" class="btn-outline btn-sm hidden">Show JSON</button>
+              </div>
+            </div>
+            <div id="resultsBody" class="card-body results-body">
+              <div class="empty-state">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+                <p>Select a test and click <strong>Run Test</strong> to see results here.</p>
+              </div>
+            </div>
+            <pre id="jsonOutput" class="json-output hidden"></pre>
+          </section>
+        </div>
       </main>
     </div>
   </div>
 
-  <!-- Hidden config fields (persisted, not shown in main UI) -->
   <input type="hidden" id="baseUrl" />
   <input type="hidden" id="clientId" />
   <input type="hidden" id="userId" />
