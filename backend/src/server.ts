@@ -1,8 +1,10 @@
 import 'dotenv/config';
 import app from './app';
+import { bootstrapDatabase } from './bootstrap';
 import { isDatabaseAvailable } from './database/connection';
 
-const PORT = process.env.PORT || 3006;
+const PORT = Number(process.env.PORT) || 3006;
+const HOST = '0.0.0.0';
 
 process.on('unhandledRejection', (reason) => {
   console.error('Unhandled rejection:', reason);
@@ -12,13 +14,19 @@ process.on('uncaughtException', (err) => {
   console.error('Uncaught exception:', err);
 });
 
-const server = app.listen(PORT, async () => {
-  const dbOk = await isDatabaseAvailable();
-  const demo = process.env.NODE_ENV !== 'production' && !dbOk;
-  console.log(`WMS 3PL Backend running on port ${PORT}`);
-  console.log(`Database: ${dbOk ? 'connected' : demo ? 'demo mode (local only)' : 'NOT CONNECTED'}`);
-  console.log(`Swagger docs: http://localhost:${PORT}/api/docs`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
+const server = app.listen(PORT, HOST, () => {
+  console.log(`WMS 3PL Backend listening on ${HOST}:${PORT}`);
+  console.log(`Health check: http://0.0.0.0:${PORT}/health`);
+
+  void (async () => {
+    await bootstrapDatabase();
+    const dbOk = await isDatabaseAvailable();
+    const demo = process.env.NODE_ENV !== 'production' && !dbOk;
+    console.log(`Database: ${dbOk ? 'connected' : demo ? 'demo mode (local only)' : 'NOT CONNECTED'}`);
+    if (dbOk) {
+      console.log(`Swagger docs: http://0.0.0.0:${PORT}/api/docs`);
+    }
+  })();
 });
 
 server.on('error', (err: NodeJS.ErrnoException) => {

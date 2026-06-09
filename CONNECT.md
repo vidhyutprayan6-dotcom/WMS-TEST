@@ -137,6 +137,7 @@ These are **not** Railway or Vercel keys — they come from your database seed.
 
 | Problem | Solution |
 |---------|----------|
+| Railway **healthcheck failed** | Push latest code — server now starts before migrate/seed. Redeploy. |
 | `EPERM` on `npm run build` (Windows) | Stop `npm run dev` first (Ctrl+C), then build |
 | Railway build fails at `prisma generate` | Push latest code (Dockerfile fix). Redeploy. |
 | Railway build fails (general) | Ensure `Dockerfile` at repo root. Root Directory = `/` |

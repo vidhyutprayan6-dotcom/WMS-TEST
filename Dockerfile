@@ -19,4 +19,4 @@ RUN npm run build
 
 EXPOSE 3006
 
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/server.js"]

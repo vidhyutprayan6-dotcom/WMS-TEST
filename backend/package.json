@@ -7,7 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsc",
     "start": "node dist/server.js",
-    "start:prod": "prisma migrate deploy && tsx scripts/seed-if-empty.ts && node dist/server.js",
+    "start:prod": "node dist/server.js",
     "setup": "prisma migrate dev --name init",
     "setup:supabase": "node scripts/db-setup.js",
     "setup:prod": "prisma migrate deploy && tsx prisma/seed.ts",
