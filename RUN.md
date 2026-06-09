@@ -20,10 +20,10 @@ Supabase   →  Database (PostgreSQL)
 ```env
 DATABASE_URL="postgresql://postgres.[REF]:[PASSWORD]@...pooler.supabase.com:6543/postgres?pgbouncer=true"
 DIRECT_URL="postgresql://postgres:[PASSWORD]@db.[REF].supabase.co:5432/postgres?sslmode=require"
-PORT=3000
+PORT=3006
 NODE_ENV=development
 FRONTEND_URL="http://localhost:5173"
-API_URL="http://localhost:3000"
+API_URL="http://localhost:3006"
 ```
 
 3. Create tables + seed:
@@ -47,7 +47,7 @@ cd backend
 npm run dev
 ```
 
-API runs at **http://localhost:3000**
+API runs at **http://localhost:3006**
 
 ### 3. Frontend (Terminal 2)
 

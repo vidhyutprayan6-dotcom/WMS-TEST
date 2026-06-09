@@ -13,9 +13,10 @@ RUN npm ci --ignore-scripts
 COPY backend/tsconfig.json ./
 COPY backend/src ./src/
 COPY backend/scripts ./scripts/
+COPY backend/data ./data/
 
 RUN npm run build
 
-EXPOSE 3000
+EXPOSE 3006
 
 CMD ["npm", "run", "start:prod"]

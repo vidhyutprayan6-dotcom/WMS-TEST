@@ -19,7 +19,7 @@
       <div class="grid-2">
         <label>
           API Base URL (Railway)
-          <input type="text" id="baseUrl" placeholder="https://your-app.up.railway.app" />
+          <input type="text" id="baseUrl" value="http://localhost:3006" placeholder="http://localhost:3006" />
         </label>
         <label>
           Invoice Month (YYYY-MM)
@@ -40,7 +40,7 @@
         <button type="button" id="useClientBBtn" class="btn secondary">Use Client B</button>
         <button type="button" id="saveConfigBtn" class="btn">Save Config</button>
       </div>
-      <p id="seedStatus" class="hint">API URL must include https:// (e.g. https://wms-test-production.up.railway.app)</p>
+      <p id="seedStatus" class="hint">Local: http://localhost:3006 · Production: https://your-app.up.railway.app</p>
     </section>
 
     <section class="card">

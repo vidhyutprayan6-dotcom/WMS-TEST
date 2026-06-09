@@ -169,7 +169,7 @@ cd frontend
 npx serve .
 ```
 
-Set API Base URL in the UI to `http://localhost:3000`.
+Set API Base URL in the UI to `http://localhost:3006`.
 
 ---
 

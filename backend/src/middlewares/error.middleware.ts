@@ -26,6 +26,26 @@ export function errorMiddleware(
     return;
   }
 
+  const errName = err.constructor?.name ?? '';
+  if (errName === 'PrismaClientInitializationError' || errName === 'PrismaClientKnownRequestError') {
+    res.status(503).json({
+      success: false,
+      error: 'DATABASE_ERROR',
+      message: 'Database unavailable. APIs are running in demo mode when Supabase is unreachable.',
+    });
+    return;
+  }
+
+  const prismaCode = (err as { code?: string }).code;
+  if (prismaCode?.startsWith('P')) {
+    res.status(503).json({
+      success: false,
+      error: 'DATABASE_ERROR',
+      message: err.message || 'Database connection failed. Check DATABASE_URL in .env',
+    });
+    return;
+  }
+
   console.error('Unhandled error:', err);
   res.status(500).json({
     success: false,

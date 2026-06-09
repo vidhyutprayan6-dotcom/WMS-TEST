@@ -1,0 +1,43 @@
+{
+  "generatedAt": "2025-01-01T00:00:00.000Z",
+  "source": "static-fallback",
+  "dbConnected": false,
+  "clients": {
+    "clientA": {
+      "id": "a1000000-0000-4000-8000-000000000001",
+      "name": "Client A — Pallet Billing",
+      "billingType": "PALLET",
+      "userId": "c1000000-0000-4000-8000-000000000001",
+      "userName": "Alice Operator"
+    },
+    "clientB": {
+      "id": "b1000000-0000-4000-8000-000000000002",
+      "name": "Client B — Volume Billing",
+      "billingType": "VOLUME",
+      "userId": "c2000000-0000-4000-8000-000000000002",
+      "userName": "Bob Supervisor"
+    }
+  },
+  "warehouse": {
+    "id": "d1000000-0000-4000-8000-000000000001",
+    "name": "Warehouse A"
+  },
+  "bins": {
+    "A1": "e1000000-0000-4000-8000-000000000001",
+    "A2": "e1000000-0000-4000-8000-000000000002",
+    "B1": "e1000000-0000-4000-8000-000000000003"
+  },
+  "products": {
+    "clientA1": "f1000000-0000-4000-8000-000000000001"
+  },
+  "examples": {
+    "clientATransfer": {
+      "productId": "f1000000-0000-4000-8000-000000000001",
+      "fromBinId": "e1000000-0000-4000-8000-000000000001",
+      "toBinId": "e1000000-0000-4000-8000-000000000002",
+      "batchNumber": "LOT-001",
+      "expiryDate": "2027-01-01",
+      "quantity": 20
+    }
+  }
+}

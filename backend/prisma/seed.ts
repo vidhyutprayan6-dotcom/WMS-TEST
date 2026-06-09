@@ -1,4 +1,6 @@
 import { PrismaClient, BillingType, UserRole, MovementType } from '@prisma/client';
+import fs from 'fs';
+import path from 'path';
 
 const prisma = new PrismaClient();
 
@@ -229,6 +231,46 @@ async function main() {
   console.log('\nUse these IDs in API requests with x-client-id and x-user-id headers.');
   console.log('Test UI (local):  open frontend/index.html');
   console.log('Seed info API:    GET /api/config/seed-info');
+
+  const seedInfo = {
+    generatedAt: new Date().toISOString(),
+    source: 'database',
+    dbConnected: true,
+    clients: {
+      clientA: {
+        id: clientA.id,
+        name: clientA.name,
+        billingType: clientA.billingType,
+        userId: userA.id,
+        userName: userA.name,
+      },
+      clientB: {
+        id: clientB.id,
+        name: clientB.name,
+        billingType: clientB.billingType,
+        userId: userB.id,
+        userName: userB.name,
+      },
+    },
+    warehouse: { id: warehouse.id, name: warehouse.name },
+    bins: { A1: binA1.id, A2: binA2.id, B1: binB1.id },
+    products: { clientA1: productA1.id, clientA2: productA2.id, clientB1: productB1.id },
+    examples: {
+      clientATransfer: {
+        productId: productA1.id,
+        fromBinId: binA1.id,
+        toBinId: binA2.id,
+        batchNumber: 'LOT-001',
+        expiryDate: '2027-01-01',
+        quantity: 20,
+      },
+    },
+  };
+
+  const dataDir = path.join(process.cwd(), 'data');
+  fs.mkdirSync(dataDir, { recursive: true });
+  fs.writeFileSync(path.join(dataDir, 'seed-fallback.json'), JSON.stringify(seedInfo, null, 2));
+  console.log('Wrote data/seed-fallback.json');
 }
 
 main()

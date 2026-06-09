@@ -1,8 +1,31 @@
+import fs from 'fs';
+import path from 'path';
 import prisma from '../../database/prisma';
+import { isDatabaseAvailable } from '../../database/connection';
+import { demoStore } from '../../demo/demo-store';
 import { NotFoundError } from '../../common/errors/AppError';
+
+function loadStaticSeedFallback() {
+  const fallbackPath = path.join(process.cwd(), 'data', 'seed-fallback.json');
+  if (!fs.existsSync(fallbackPath)) return null;
+  return JSON.parse(fs.readFileSync(fallbackPath, 'utf-8')) as Record<string, unknown>;
+}
 
 export class ConfigService {
   async getSeedInfo() {
+    if (!(await isDatabaseAvailable())) {
+      return demoStore.getSeedInfo();
+    }
+
+    try {
+      return await this.getSeedInfoFromDb();
+    } catch (error) {
+      console.error('Database error for seed-info, using demo store:', error);
+      return demoStore.getSeedInfo();
+    }
+  }
+
+  private async getSeedInfoFromDb() {
     const clients = await prisma.client.findMany({
       include: {
         users: { take: 1, orderBy: { createdAt: 'asc' } },
@@ -12,10 +35,9 @@ export class ConfigService {
     });
 
     if (clients.length === 0) {
-      throw new NotFoundError(
-        'NO_SEED_DATA',
-        'Database has no seed data. Run: npx prisma db seed'
-      );
+      const fallback = loadStaticSeedFallback();
+      if (fallback) return { ...fallback, source: 'static-fallback' };
+      throw new NotFoundError('NO_SEED_DATA', 'Database has no seed data. Run: npm run prisma:seed');
     }
 
     const warehouse = await prisma.warehouse.findFirst({
@@ -39,6 +61,8 @@ export class ConfigService {
 
     return {
       generatedAt: new Date().toISOString(),
+      source: 'database',
+      dbConnected: true,
       clients: {
         clientA: {
           id: clientA.id,
@@ -60,14 +84,8 @@ export class ConfigService {
           : {}),
       },
       warehouse: { id: warehouse.id, name: warehouse.name },
-      bins: {
-        A1: binA1?.id,
-        A2: binA2?.id,
-        B1: binB1?.id,
-      },
-      products: {
-        clientA1: productA1?.id,
-      },
+      bins: { A1: binA1?.id, A2: binA2?.id, B1: binB1?.id },
+      products: { clientA1: productA1?.id },
       examples: {
         clientATransfer: productA1 && binA1 && binA2
           ? {

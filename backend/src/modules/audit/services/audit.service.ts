@@ -1,6 +1,8 @@
 import { Prisma } from '@prisma/client';
 import { AuditRepository, CreateAuditLogInput } from '../repositories/audit.repository';
 import { AuditLog } from '@prisma/client';
+import { isDatabaseAvailable } from '../../../database/connection';
+import { demoStore } from '../../../demo/demo-store';
 
 export class AuditService {
   constructor(private readonly auditRepository: AuditRepository) {}
@@ -9,7 +11,10 @@ export class AuditService {
     return this.auditRepository.create(input, tx);
   }
 
-  async getLogsForClient(clientId: string): Promise<AuditLog[]> {
+  async getLogsForClient(clientId: string) {
+    if (!(await isDatabaseAvailable())) {
+      return demoStore.getAuditLogs(clientId);
+    }
     return this.auditRepository.findByClient(clientId);
   }
 }

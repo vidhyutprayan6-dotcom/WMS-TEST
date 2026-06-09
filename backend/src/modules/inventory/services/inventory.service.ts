@@ -1,4 +1,6 @@
 import prisma from '../../../database/prisma';
+import { isDatabaseAvailable } from '../../../database/connection';
+import { demoStore } from '../../../demo/demo-store';
 import { InventoryRepository } from '../repositories/inventory.repository';
 import { InventoryTransferDomain } from '../domain/inventory.transfer.domain';
 import { AuditService } from '../../audit/services/audit.service';
@@ -14,6 +16,10 @@ export class TransferInventoryService {
   ) {}
 
   async execute(clientId: string, userId: string, dto: TransferInventoryDto) {
+    if (!(await isDatabaseAvailable())) {
+      return demoStore.transfer(clientId, userId, dto);
+    }
+
     const expiryDate = new Date(dto.expiryDate);
 
     const product = await this.inventoryRepository.findProductForTenant(dto.productId, clientId);
@@ -67,10 +73,7 @@ export class TransferInventoryService {
     const beforeQty = sourceInventory.quantity;
     const afterQty = beforeQty - dto.quantity;
 
-    const sourceRemainingPallets = Math.max(
-      0,
-      sourceInventory.palletCount - transferPallets
-    );
+    const sourceRemainingPallets = Math.max(0, sourceInventory.palletCount - transferPallets);
     const sourceRemainingM3 = Math.max(0, sourceInventory.volumeM3 - transferM3);
 
     const result = await prisma.$transaction(async (tx) => {
@@ -177,6 +180,10 @@ export class ListInventoryService {
   constructor(private readonly inventoryRepository: InventoryRepository) {}
 
   async execute(clientId: string) {
+    if (!(await isDatabaseAvailable())) {
+      return demoStore.listInventory(clientId);
+    }
+
     const items = await this.inventoryRepository.findByTenant(clientId);
     return items.map((item) => ({
       id: item.id,

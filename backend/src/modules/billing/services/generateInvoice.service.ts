@@ -1,5 +1,7 @@
 import { BillingRepository } from '../repositories/billing.repository';
 import { BillingEngine } from '../domain/billing.engine';
+import { isDatabaseAvailable } from '../../../database/connection';
+import { demoStore } from '../../../demo/demo-store';
 import { NotFoundError } from '../../../common/errors/AppError';
 import { getDaysInMonth } from '../../../common/utils/date.utils';
 
@@ -9,6 +11,10 @@ export class GenerateInvoiceService {
   constructor(private readonly billingRepository: BillingRepository) {}
 
   async execute(clientId: string, month: string) {
+    if (!(await isDatabaseAvailable())) {
+      return demoStore.generateInvoice(clientId, month);
+    }
+
     const context = await this.billingRepository.getBillingContext(clientId, month);
 
     if (!context) {
@@ -58,6 +64,10 @@ export class GenerateInvoiceService {
   }
 
   async getInvoice(invoiceId: string, clientId: string) {
+    if (!(await isDatabaseAvailable())) {
+      return demoStore.getInvoice(invoiceId, clientId);
+    }
+
     const invoice = await this.billingRepository.getInvoiceById(invoiceId, clientId);
 
     if (!invoice) {

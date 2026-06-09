@@ -55,19 +55,19 @@ copy .env.example .env
 
 npm install
 npm run setup:supabase    # migrate + seed
-npm run dev               # http://localhost:3000
+npm run dev               # http://localhost:3006
 ```
 
 ### 2. Frontend
 
 ```powershell
 cd frontend
-# Set API_URL in config.js or use the UI field
-npx serve .
-# Open http://localhost:3000 (or serve port)
+npm install
+npm run dev
+# Open http://localhost:5173 — set API Base URL to http://localhost:3006
 ```
 
-Or open `frontend/index.html` and set API Base URL to `http://localhost:3000`.
+Or open `frontend/index.html` and set API Base URL to `http://localhost:3006`.
 
 ## Deploy
 

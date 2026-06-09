@@ -1,6 +1,6 @@
 export function getAllowedOrigins(): (string | RegExp)[] {
   const origins: (string | RegExp)[] = [
-    'http://localhost:3000',
+    'http://localhost:3006',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     /\.vercel\.app$/,

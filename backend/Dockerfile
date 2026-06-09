@@ -11,9 +11,10 @@ RUN npm ci --ignore-scripts
 COPY tsconfig.json ./
 COPY src ./src/
 COPY scripts ./scripts/
+COPY data ./data/
 
 RUN npm run build
 
-EXPOSE 3000
+EXPOSE 3006
 
 CMD ["npm", "run", "start:prod"]

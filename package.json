@@ -1,0 +1,9 @@
+{
+  "name": "wms-3pl",
+  "private": true,
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "echo Run in two terminals: npm run dev:backend  AND  npm run dev:frontend"
+  }
+}
