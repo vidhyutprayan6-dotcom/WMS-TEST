@@ -78,7 +78,8 @@ Or open `frontend/index.html` and set API Base URL to `http://localhost:3000`.
 | Frontend | `frontend/` | [Vercel](https://vercel.com) |
 
 See **[RUN.md](./RUN.md)** for step-by-step local + production instructions.  
-See **[CONNECT.md](./CONNECT.md)** for connecting Vercel ↔ Railway ↔ Supabase.
+See **[RUN-ONLINE.md](./RUN-ONLINE.md)** for online deployment (Vercel + Railway).  
+See **[CONNECT.md](./CONNECT.md)** for environment variable reference.
 
 ## API headers (multi-tenant)
 

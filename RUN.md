@@ -53,12 +53,13 @@ API runs at **http://localhost:3000**
 
 ```powershell
 cd frontend
-npx serve .
+npm install
+npm run dev
 ```
 
-Open the URL shown (e.g. **http://localhost:3000** or **http://localhost:3000** from serve — usually port 3000 or 5000).
+Open **http://localhost:5173**
 
-Set **API Base URL** to `http://localhost:3000` if needed.
+> Use `npm run dev` — NOT `npm serve` (that command does not exist).
 
 ### 4. Test locally
 
@@ -90,10 +91,15 @@ git push
 
 ### 2. Railway project settings
 
+Railway → **WMS-TEST** → **Settings**:
+
 | Setting | Value |
 |---------|-------|
-| **Root Directory** | `/` (empty) |
-| **Builder** | Dockerfile (auto) |
+| **Root Directory** | `backend` |
+
+Then add **all** variables (see RUN-ONLINE.md) and click **Deploy**.
+
+See **[RUN-ONLINE.md](./RUN-ONLINE.md)** for the complete online deployment guide.
 
 ### 3. Railway variables
 
@@ -137,12 +143,17 @@ Uses your `backend/.env` Supabase connection.
 
 ### 1. Vercel project settings
 
+Vercel → **Settings → General**:
+
 | Setting | Value |
 |---------|-------|
 | **Root Directory** | `frontend` |
-| **Framework** | Other |
+| **Framework Preset** | Other |
 | **Build Command** | `npm run build` |
 | **Output Directory** | `.` |
+| **Install Command** | `npm install` |
+
+> Do NOT set Root Directory to `/` — that causes the `fsPath` build error.
 
 ### 2. Vercel environment variable
 

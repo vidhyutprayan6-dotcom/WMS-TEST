@@ -3,6 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "node build.js"
+    "build": "node build.js",
+    "vercel-build": "node build.js",
+    "start": "serve . -l 5173",
+    "dev": "serve . -l 5173"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
   }
 }
