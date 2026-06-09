@@ -23,6 +23,18 @@ const IDS = {
   auditSeed: '21000000-0000-4000-8000-000000000001',
 } as const;
 
+interface DemoInventoryItem {
+  id: string;
+  clientId: string;
+  productId: string;
+  binId: string;
+  batchNumber: string;
+  expiryDate: string;
+  quantity: number;
+  palletCount: number;
+  volumeM3: number;
+}
+
 /** In-memory store used when Supabase is unreachable (e.g. local Windows dev). */
 class DemoStore {
   private readonly transferDomain = new InventoryTransferDomain();
@@ -100,7 +112,7 @@ class DemoStore {
     unitVolume: 0.1,
   };
 
-  inventory = [
+  inventory: DemoInventoryItem[] = [
     {
       id: IDS.invA1,
       clientId: IDS.clientA,

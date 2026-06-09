@@ -40,7 +40,7 @@ Your build failed because Railway was building from the **repo root** (no `packa
 | `DIRECT_URL` | Supabase → Connect → Prisma → **Direct** (port 5432, user `postgres`) | `postgresql://postgres:pass@db.xxx.supabase.co:5432/postgres?sslmode=require` |
 | `NODE_ENV` | Set manually | `production` |
 | `API_URL` | Railway → Settings → Networking → your public URL | `https://wms-test-production.up.railway.app` |
-| `FRONTEND_URL` | Vercel → your deployed URL | `https://wms-test.vercel.app` |
+| `FRONTEND_URL` | Vercel → your deployed URL | `https://wms-test-cyan.vercel.app` |
 
 Do **not** set `PORT` — Railway sets it automatically.
 
@@ -52,7 +52,9 @@ Do **not** set `PORT` — Railway sets it automatically.
 
 Example: `https://wms-test-production.up.railway.app`
 
-**No trailing slash.**
+**No trailing slash.** Without this variable, Vercel build will fail (by design).
+
+After adding `API_URL`, click **Redeploy** on Vercel. The UI will then call Railway instead of `localhost:3006`.
 
 ---
 
@@ -68,7 +70,11 @@ Example: `https://wms-test-production.up.railway.app`
 6. Set `API_URL` on Railway to this URL
 7. Test: open `https://xxxx.up.railway.app/health` → should show `{"status":"ok"}`
 
-### 2. Seed Supabase (if not done)
+### 2. Seed Supabase
+
+Railway **auto-seeds** on deploy when the `clients` table is empty (`scripts/seed-if-empty.ts`).
+
+To seed manually:
 
 ```powershell
 cd backend

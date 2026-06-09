@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import prisma from '../../database/prisma';
-import { isDatabaseAvailable } from '../../database/connection';
+import { useDemoStore } from '../../database/connection';
 import { demoStore } from '../../demo/demo-store';
 import { NotFoundError } from '../../common/errors/AppError';
 
@@ -13,14 +13,15 @@ function loadStaticSeedFallback() {
 
 export class ConfigService {
   async getSeedInfo() {
-    if (!(await isDatabaseAvailable())) {
+    if (await useDemoStore()) {
       return demoStore.getSeedInfo();
     }
 
     try {
       return await this.getSeedInfoFromDb();
     } catch (error) {
-      console.error('Database error for seed-info, using demo store:', error);
+      console.error('Database error for seed-info:', error);
+      if (process.env.NODE_ENV === 'production') throw error;
       return demoStore.getSeedInfo();
     }
   }

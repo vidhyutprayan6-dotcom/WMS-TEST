@@ -1,5 +1,5 @@
 import prisma from '../../../database/prisma';
-import { isDatabaseAvailable } from '../../../database/connection';
+import { useDemoStore } from '../../../database/connection';
 import { demoStore } from '../../../demo/demo-store';
 import { InventoryRepository } from '../repositories/inventory.repository';
 import { InventoryTransferDomain } from '../domain/inventory.transfer.domain';
@@ -16,7 +16,7 @@ export class TransferInventoryService {
   ) {}
 
   async execute(clientId: string, userId: string, dto: TransferInventoryDto) {
-    if (!(await isDatabaseAvailable())) {
+    if (await useDemoStore()) {
       return demoStore.transfer(clientId, userId, dto);
     }
 
@@ -180,7 +180,7 @@ export class ListInventoryService {
   constructor(private readonly inventoryRepository: InventoryRepository) {}
 
   async execute(clientId: string) {
-    if (!(await isDatabaseAvailable())) {
+    if (await useDemoStore()) {
       return demoStore.listInventory(clientId);
     }
 

@@ -1,7 +1,12 @@
 const $ = (id) => document.getElementById(id);
 
 const LOCAL_API_URL = 'http://localhost:3006';
-const CONFIG_VERSION = '4'; // bump to reset stale localStorage (valid demo UUIDs)
+const CONFIG_VERSION = '5'; // bump to reset stale localStorage (production Railway URL)
+
+function isProductionHost() {
+  const host = window.location.hostname;
+  return host.endsWith('.vercel.app') || host.endsWith('.railway.app');
+}
 
 const fields = ['baseUrl', 'clientId', 'userId', 'invoiceMonth', 'productId', 'fromBinId', 'toBinId', 'batchNumber', 'expiryDate', 'quantity', 'invoiceId'];
 
@@ -22,7 +27,11 @@ function normalizeBaseUrl(url) {
 }
 
 function getDefaultBaseUrl() {
-  return normalizeBaseUrl(window.API_BASE_URL || LOCAL_API_URL);
+  const built = window.API_BASE_URL || LOCAL_API_URL;
+  if (isProductionHost() && built && !built.includes('localhost')) {
+    return normalizeBaseUrl(built);
+  }
+  return normalizeBaseUrl(built);
 }
 
 function getBaseUrl() {
@@ -33,8 +42,14 @@ function migrateStorage() {
   const savedVersion = localStorage.getItem('wms_configVersion');
   if (savedVersion === CONFIG_VERSION) return;
 
-  const savedBase = localStorage.getItem('wms_baseUrl');
-  if (!savedBase || savedBase.includes('localhost:3000') || savedBase.includes('127.0.0.1:3000')) {
+  const savedBase = localStorage.getItem('wms_baseUrl') || '';
+
+  // On Vercel/Railway, never keep a localhost API URL from a previous local session
+  if (isProductionHost() && (savedBase.includes('localhost') || savedBase.includes('127.0.0.1'))) {
+    localStorage.removeItem('wms_baseUrl');
+  }
+
+  if (!isProductionHost() && (!savedBase || savedBase.includes('localhost:3000') || savedBase.includes('127.0.0.1:3000'))) {
     localStorage.setItem('wms_baseUrl', LOCAL_API_URL);
   }
 
@@ -51,8 +66,14 @@ function migrateStorage() {
 function loadConfig() {
   migrateStorage();
 
-  const savedBase = localStorage.getItem('wms_baseUrl');
-  $('baseUrl').value = normalizeBaseUrl(savedBase || getDefaultBaseUrl());
+  const defaultUrl = getDefaultBaseUrl();
+  if (isProductionHost()) {
+    $('baseUrl').value = defaultUrl;
+    localStorage.setItem('wms_baseUrl', defaultUrl);
+  } else {
+    const savedBase = localStorage.getItem('wms_baseUrl');
+    $('baseUrl').value = normalizeBaseUrl(savedBase || defaultUrl);
+  }
 
   fields.filter((k) => k !== 'baseUrl').forEach((key) => {
     const saved = localStorage.getItem(`wms_${key}`);
@@ -132,7 +153,7 @@ async function loadSeedInfo() {
 
   seedInfo = result.data.data;
   const offline = ['static-fallback', 'demo-store'].includes(seedInfo.source);
-  const source = offline ? ' (demo mode — DB not connected)' : '';
+  const source = offline ? ' (demo mode — DB not connected)' : ' (from database)';
   showHint('seedStatus', `Loaded seed data${source}. Click "Use Client A" then try Quick Actions.`);
   return seedInfo;
 }

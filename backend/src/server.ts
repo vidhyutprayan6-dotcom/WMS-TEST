@@ -14,8 +14,9 @@ process.on('uncaughtException', (err) => {
 
 const server = app.listen(PORT, async () => {
   const dbOk = await isDatabaseAvailable();
+  const demo = process.env.NODE_ENV !== 'production' && !dbOk;
   console.log(`WMS 3PL Backend running on port ${PORT}`);
-  console.log(`Database: ${dbOk ? 'connected' : 'demo mode (in-memory)'}`);
+  console.log(`Database: ${dbOk ? 'connected' : demo ? 'demo mode (local only)' : 'NOT CONNECTED'}`);
   console.log(`Swagger docs: http://localhost:${PORT}/api/docs`);
   console.log(`Health check: http://localhost:${PORT}/health`);
 });
