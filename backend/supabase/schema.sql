@@ -1,12 +1,9 @@
--- Run this in Supabase → SQL Editor → New query → Run
--- Creates all tables for the WMS 3PL backend
+-- STEP 1 — Supabase SQL Editor: create tables (client test requirements only)
+-- Then run seed.sql
 
--- CreateEnum
 CREATE TYPE "BillingType" AS ENUM ('PALLET', 'VOLUME');
-CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'SUPERVISOR', 'OPERATOR');
-CREATE TYPE "MovementType" AS ENUM ('INBOUND', 'OUTBOUND', 'TRANSFER', 'ADJUSTMENT');
+CREATE TYPE "MovementType" AS ENUM ('INBOUND', 'OUTBOUND', 'TRANSFER');
 
--- CreateTable
 CREATE TABLE "clients" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -20,8 +17,6 @@ CREATE TABLE "users" (
     "id" TEXT NOT NULL,
     "clientId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "role" "UserRole" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
@@ -30,7 +25,6 @@ CREATE TABLE "users" (
 CREATE TABLE "warehouses" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "address" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "warehouses_pkey" PRIMARY KEY ("id")
@@ -54,7 +48,6 @@ CREATE TABLE "products" (
     "clientId" TEXT NOT NULL,
     "sku" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "unitVolume" DOUBLE PRECISION NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "products_pkey" PRIMARY KEY ("id")
@@ -64,7 +57,6 @@ CREATE TABLE "inventory" (
     "id" TEXT NOT NULL,
     "clientId" TEXT NOT NULL,
     "productId" TEXT NOT NULL,
-    "warehouseId" TEXT NOT NULL,
     "binId" TEXT NOT NULL,
     "batchNumber" TEXT NOT NULL,
     "expiryDate" DATE NOT NULL,
@@ -139,8 +131,6 @@ CREATE TABLE "invoice_line_items" (
     CONSTRAINT "invoice_line_items_pkey" PRIMARY KEY ("id")
 );
 
--- Indexes
-CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 CREATE INDEX "users_clientId_idx" ON "users"("clientId");
 CREATE UNIQUE INDEX "bins_warehouseId_code_key" ON "bins"("warehouseId", "code");
 CREATE INDEX "products_clientId_idx" ON "products"("clientId");
@@ -154,13 +144,11 @@ CREATE UNIQUE INDEX "billing_rates_clientId_key" ON "billing_rates"("clientId");
 CREATE INDEX "invoices_clientId_idx" ON "invoices"("clientId");
 CREATE UNIQUE INDEX "invoices_clientId_invoiceMonth_key" ON "invoices"("clientId", "invoiceMonth");
 
--- Foreign keys
 ALTER TABLE "users" ADD CONSTRAINT "users_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "clients"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "bins" ADD CONSTRAINT "bins_warehouseId_fkey" FOREIGN KEY ("warehouseId") REFERENCES "warehouses"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "products" ADD CONSTRAINT "products_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "clients"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "inventory" ADD CONSTRAINT "inventory_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "clients"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "inventory" ADD CONSTRAINT "inventory_productId_fkey" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "inventory" ADD CONSTRAINT "inventory_warehouseId_fkey" FOREIGN KEY ("warehouseId") REFERENCES "warehouses"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "inventory" ADD CONSTRAINT "inventory_binId_fkey" FOREIGN KEY ("binId") REFERENCES "bins"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "stock_movements" ADD CONSTRAINT "stock_movements_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "clients"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "stock_movements" ADD CONSTRAINT "stock_movements_productId_fkey" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -171,7 +159,6 @@ ALTER TABLE "billing_rates" ADD CONSTRAINT "billing_rates_clientId_fkey" FOREIGN
 ALTER TABLE "invoices" ADD CONSTRAINT "invoices_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "clients"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "invoice_line_items" ADD CONSTRAINT "invoice_line_items_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "invoices"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- Prisma migrations tracking
 CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
     "id" VARCHAR(36) PRIMARY KEY,
     "checksum" VARCHAR(64) NOT NULL,
@@ -184,4 +171,5 @@ CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
 );
 
 INSERT INTO "_prisma_migrations" ("id", "checksum", "finished_at", "migration_name", "applied_steps_count")
-VALUES (gen_random_uuid()::text, 'manual', now(), '20260608162659_init', 1);
+VALUES (gen_random_uuid()::text, 'manual', now(), '20260608162659_init', 1),
+       (gen_random_uuid()::text, 'manual', now(), '20260609120000_align_requirements', 1);

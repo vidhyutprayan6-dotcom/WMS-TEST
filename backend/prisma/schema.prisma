@@ -1,3 +1,6 @@
+// WMS 3PL — schema aligned to client test requirements
+// A. Storage Billing  B. Stock Transfer + Traceability  + Audit Trail + Multi-tenant
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,24 +11,20 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+/// Pallet-based or volume-based (M³) monthly storage billing
 enum BillingType {
   PALLET
   VOLUME
 }
 
-enum UserRole {
-  ADMIN
-  SUPERVISOR
-  OPERATOR
-}
-
+/// INBOUND/OUTBOUND feed billing fees; TRANSFER records bin-to-bin moves
 enum MovementType {
   INBOUND
   OUTBOUND
   TRANSFER
-  ADJUSTMENT
 }
 
+/// B2B tenant — strict data isolation via clientId on all stock tables
 model Client {
   id          String      @id @default(uuid())
   name        String
@@ -33,22 +32,21 @@ model Client {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  users         User[]
-  products      Product[]
-  inventory     Inventory[]
+  users          User[]
+  products       Product[]
+  inventory      Inventory[]
   stockMovements StockMovement[]
-  billingRates  BillingRate[]
-  invoices      Invoice[]
+  billingRate    BillingRate?
+  invoices       Invoice[]
 
   @@map("clients")
 }
 
+/// Operator identity for audit trail (who performed the action)
 model User {
   id        String   @id @default(uuid())
   clientId  String
   name      String
-  email     String   @unique
-  role      UserRole
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -59,19 +57,19 @@ model User {
   @@map("users")
 }
 
+/// Physical site containing bin/rack locations
 model Warehouse {
   id        String   @id @default(uuid())
   name      String
-  address   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  bins      Bin[]
-  inventory Inventory[]
+  bins Bin[]
 
   @@map("warehouses")
 }
 
+/// Bin/Rack — capacity enforced on transfer (over-capacity validation)
 model Bin {
   id              String   @id @default(uuid())
   warehouseId     String
@@ -83,8 +81,8 @@ model Bin {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  warehouse        Warehouse       @relation(fields: [warehouseId], references: [id])
-  inventory        Inventory[]
+  warehouse          Warehouse       @relation(fields: [warehouseId], references: [id])
+  inventory          Inventory[]
   stockMovementsFrom StockMovement[] @relation("FromBin")
   stockMovementsTo   StockMovement[] @relation("ToBin")
 
@@ -92,14 +90,14 @@ model Bin {
   @@map("bins")
 }
 
+/// SKU catalog — scoped per tenant
 model Product {
-  id          String   @id @default(uuid())
-  clientId    String
-  sku         String
-  name        String
-  unitVolume  Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  clientId  String
+  sku       String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   client         Client          @relation(fields: [clientId], references: [id])
   inventory      Inventory[]
@@ -110,30 +108,30 @@ model Product {
   @@map("products")
 }
 
+/// On-hand stock with batch/lot + expiry traceability
 model Inventory {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   clientId    String
   productId   String
-  warehouseId String
   binId       String
   batchNumber String
-  expiryDate  DateTime  @db.Date
+  expiryDate  DateTime @db.Date
   quantity    Int
-  palletCount Int       @default(0)
-  volumeM3    Float     @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  palletCount Int      @default(0)
+  volumeM3    Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  client    Client    @relation(fields: [clientId], references: [id])
-  product   Product   @relation(fields: [productId], references: [id])
-  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
-  bin       Bin       @relation(fields: [binId], references: [id])
+  client  Client  @relation(fields: [clientId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+  bin     Bin     @relation(fields: [binId], references: [id])
 
   @@unique([clientId, productId, binId, batchNumber, expiryDate])
   @@index([clientId])
   @@map("inventory")
 }
 
+/// Movement log — transfers + inbound/outbound quantities for billing
 model StockMovement {
   id           String       @id @default(uuid())
   clientId     String
@@ -159,6 +157,7 @@ model StockMovement {
   @@map("stock_movements")
 }
 
+/// Audit trail — who, when, before/after quantities for all inventory actions
 model AuditLog {
   id          String   @id @default(uuid())
   clientId    String?
@@ -175,6 +174,7 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+/// Per-tenant rates: daily storage + inbound/outbound handling fees
 model BillingRate {
   id           String   @id @default(uuid())
   clientId     String   @unique
@@ -189,6 +189,7 @@ model BillingRate {
   @@map("billing_rates")
 }
 
+/// Monthly invoice header
 model Invoice {
   id            String   @id @default(uuid())
   clientId      String
@@ -207,6 +208,7 @@ model Invoice {
   @@map("invoices")
 }
 
+/// Invoice line items — storage, inbound handling, outbound handling
 model InvoiceLineItem {
   id          String @id @default(uuid())
   invoiceId   String

@@ -67,7 +67,6 @@ export class InventoryRepository {
     data: {
       clientId: string;
       productId: string;
-      warehouseId: string;
       binId: string;
       batchNumber: string;
       expiryDate: Date;

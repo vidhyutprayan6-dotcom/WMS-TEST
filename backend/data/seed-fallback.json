@@ -5,30 +5,28 @@
   "clients": {
     "clientA": {
       "id": "a1000000-0000-4000-8000-000000000001",
-      "name": "Client A — Pallet Billing",
+      "name": "Client A (Pallet)",
       "billingType": "PALLET",
       "userId": "c1000000-0000-4000-8000-000000000001",
-      "userName": "Alice Operator"
+      "userName": "Alice"
     },
     "clientB": {
       "id": "b1000000-0000-4000-8000-000000000002",
-      "name": "Client B — Volume Billing",
+      "name": "Client B (Volume)",
       "billingType": "VOLUME",
       "userId": "c2000000-0000-4000-8000-000000000002",
-      "userName": "Bob Supervisor"
+      "userName": "Bob"
     }
   },
-  "warehouse": {
-    "id": "d1000000-0000-4000-8000-000000000001",
-    "name": "Warehouse A"
-  },
+  "warehouse": { "id": "d1000000-0000-4000-8000-000000000001", "name": "Warehouse A" },
   "bins": {
     "A1": "e1000000-0000-4000-8000-000000000001",
     "A2": "e1000000-0000-4000-8000-000000000002",
     "B1": "e1000000-0000-4000-8000-000000000003"
   },
   "products": {
-    "clientA1": "f1000000-0000-4000-8000-000000000001"
+    "clientA": "f1000000-0000-4000-8000-000000000001",
+    "clientB": "f2000000-0000-4000-8000-000000000001"
   },
   "examples": {
     "clientATransfer": {

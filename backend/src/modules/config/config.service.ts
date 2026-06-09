@@ -52,7 +52,8 @@ export class ConfigService {
     const clientA = clients.find((c) => c.billingType === 'PALLET') ?? clients[0];
     const clientB = clients.find((c) => c.billingType === 'VOLUME') ?? clients[1];
 
-    const productA1 = clientA.products.find((p) => p.sku === 'SKU-A-001') ?? clientA.products[0];
+    const productA = clientA.products.find((p) => p.sku === 'SKU-A-001') ?? clientA.products[0];
+    const productB = clientB?.products.find((p) => p.sku === 'SKU-B-001');
     const binA1 = warehouse.bins.find((b) => b.code === 'A1') ?? warehouse.bins[0];
     const binA2 = warehouse.bins.find((b) => b.code === 'A2') ?? warehouse.bins[1];
     const binB1 = warehouse.bins.find((b) => b.code === 'B1') ?? warehouse.bins[2];
@@ -86,11 +87,11 @@ export class ConfigService {
       },
       warehouse: { id: warehouse.id, name: warehouse.name },
       bins: { A1: binA1?.id, A2: binA2?.id, B1: binB1?.id },
-      products: { clientA1: productA1?.id },
+      products: { clientA: productA?.id, clientB: productB?.id },
       examples: {
-        clientATransfer: productA1 && binA1 && binA2
+        clientATransfer: productA && binA1 && binA2
           ? {
-              productId: productA1.id,
+              productId: productA.id,
               fromBinId: binA1.id,
               toBinId: binA2.id,
               batchNumber: 'LOT-001',

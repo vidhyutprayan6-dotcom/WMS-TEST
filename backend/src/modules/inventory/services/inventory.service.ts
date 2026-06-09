@@ -89,7 +89,6 @@ export class TransferInventoryService {
         {
           clientId,
           productId: dto.productId,
-          warehouseId: sourceInventory.warehouseId,
           binId: dto.toBinId,
           batchNumber: dto.batchNumber,
           expiryDate,
