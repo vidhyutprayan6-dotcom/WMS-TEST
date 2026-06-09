@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="6" fill="#1a3a5c"/>
+  <!-- warehouse roof -->
+  <path d="M4 12L16 5l12 7v2H4v-2z" fill="#4a90d9"/>
+  <!-- bin grid -->
+  <rect x="7" y="15" width="7" height="6" rx="1" fill="#7eb8ff" opacity=".9"/>
+  <rect x="18" y="15" width="7" height="6" rx="1" fill="#2a9d5c" opacity=".95"/>
+  <rect x="7" y="23" width="7" height="5" rx="1" fill="#3d6a9e"/>
+  <rect x="18" y="23" width="7" height="5" rx="1" fill="#3d6a9e"/>
+  <!-- transfer arrow (bin-to-bin) -->
+  <path d="M14 18h4M16 16.5v3" stroke="#e7ecf3" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M17.5 16.5L19 18l-1.5 1.5" stroke="#e7ecf3" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

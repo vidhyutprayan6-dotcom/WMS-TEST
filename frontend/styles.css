@@ -15,18 +15,32 @@ body {
 header {
   background: linear-gradient(135deg, #1a3a5c 0%, #0f1419 100%);
   border-bottom: 1px solid #2a3f5f;
-  padding: 1.5rem 2rem;
+  padding: 1.25rem 2rem;
 }
 
-header h1 {
-  font-size: 1.5rem;
+.brand {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.25rem;
+}
+
+.brand-logo {
+  display: block;
+  flex-shrink: 0;
+  height: 48px;
+  width: auto;
+}
+
+.brand-text h1 {
+  font-size: 1.35rem;
   font-weight: 600;
 }
 
-header p {
+.brand-text p {
   color: #8ba3bf;
-  margin-top: 0.25rem;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
 }
 
 main {
