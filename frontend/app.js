@@ -467,7 +467,7 @@ function renderInventoryTable(items) {
   return `
     <div class="result-summary"><p class="ok-text">${items.length} stock record(s)</p></div>
     <table class="data-table">
-      <thead><tr><th>Product</th><th>Bin</th><th>Qty</th><th>Batch</th><th>Expiry</th></tr></thead>
+      <thead><tr><th>Product</th><th>Bin</th><th class="num">Qty</th><th>Batch</th><th>Expiry</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
@@ -578,7 +578,39 @@ function renderConditions(testId) {
     <p class="hint">Uses current tenant from header bar. No additional input required.</p>`;
 }
 
+const EMPTY_RESULTS_HTML = `
+  <div class="empty-state">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+    <p>Select a test and click <strong>Run Test</strong> to see results here.</p>
+  </div>`;
+
+function clearResults() {
+  lastResponse = null;
+  lastInvoiceData = null;
+  showJson = false;
+
+  const badge = $('statusBadge');
+  if (badge) {
+    badge.textContent = '—';
+    badge.className = 'badge';
+  }
+
+  $('jsonOutput').textContent = '';
+  $('jsonOutput').classList.add('hidden');
+  $('toggleJsonBtn')?.classList.add('hidden');
+  $('downloadPdfBtn')?.classList.add('hidden');
+
+  const body = $('resultsBody');
+  if (body) {
+    body.classList.remove('hidden');
+    body.innerHTML = EMPTY_RESULTS_HTML;
+  }
+}
+
 function selectTest(testId) {
+  if (testId !== currentTestId) {
+    clearResults();
+  }
   currentTestId = testId;
   document.querySelectorAll('.nav-item').forEach((el) => {
     el.classList.toggle('active', el.dataset.test === testId);

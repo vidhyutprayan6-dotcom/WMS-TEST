@@ -681,20 +681,26 @@ select:focus {
 }
 
 /* ── Data tables ── */
-.data-table {
+.data-table,
+.invoice-table {
   border-collapse: collapse;
   font-size: 0.78rem;
+  text-align: left;
   width: 100%;
 }
 
 .data-table th,
-.data-table td {
+.data-table td,
+.invoice-table th,
+.invoice-table td {
   border-bottom: 1px solid var(--border);
   padding: 0.5rem 0.6rem;
   text-align: left;
+  vertical-align: middle;
 }
 
-.data-table th {
+.data-table th,
+.invoice-table th {
   background: var(--bg-input);
   color: var(--text-muted);
   font-size: 0.68rem;
@@ -703,12 +709,15 @@ select:focus {
   text-transform: uppercase;
 }
 
-.data-table td {
+.data-table td,
+.invoice-table td {
   color: var(--text-secondary);
 }
 
 .data-table td.num,
-.data-table th.num {
+.data-table th.num,
+.invoice-table td.num,
+.invoice-table th.num {
   font-family: 'Consolas', monospace;
   text-align: right;
 }
@@ -808,16 +817,14 @@ select:focus {
 
 /* ── Toasts ── */
 .toast-container {
-  bottom: 1.5rem;
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   gap: 0.65rem;
-  left: 50%;
-  max-width: 420px;
+  max-width: min(380px, calc(100vw - 2.5rem));
   pointer-events: none;
   position: fixed;
-  transform: translateX(-50%);
-  width: calc(100% - 2rem);
+  right: 1.25rem;
+  top: 1rem;
   z-index: 9999;
 }
 
@@ -911,13 +918,13 @@ select:focus {
 .toast-out { animation: toast-out 0.3s ease forwards; }
 
 @keyframes toast-in {
-  from { opacity: 0; transform: translateY(1rem) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateX(1rem); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes toast-out {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(0.5rem); }
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(0.75rem); }
 }
 
 @keyframes toast-progress {

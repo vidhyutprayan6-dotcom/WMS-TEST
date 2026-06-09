@@ -60,8 +60,8 @@
       styles: { fontSize: 9, cellPadding: 4, textColor: [30, 41, 59] },
       alternateRowStyles: { fillColor: [248, 250, 252] },
       columnStyles: {
-        0: { cellWidth: 90 },
-        1: { halign: 'center', cellWidth: 20 },
+        0: { cellWidth: 90, halign: 'left' },
+        1: { halign: 'right', cellWidth: 20 },
         2: { halign: 'right', cellWidth: 30 },
         3: { halign: 'right', cellWidth: 35 },
       },
@@ -108,7 +108,7 @@
           <p class="invoice-meta">${escape(client.name)} · ${escape(d.month || '')} · ${escape(client.billingType || '')}</p>
         </div>
         <table class="data-table invoice-table">
-          <thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
+          <thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead>
           <tbody>${rows || '<tr><td colspan="4">No line items</td></tr>'}</tbody>
           <tfoot>
             <tr><td colspan="3">Storage</td><td class="num">${money(totals.storage)}</td></tr>
