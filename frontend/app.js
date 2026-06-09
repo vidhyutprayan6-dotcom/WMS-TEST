@@ -2,13 +2,28 @@ const $ = (id) => document.getElementById(id);
 
 const fields = ['baseUrl', 'clientId', 'userId', 'invoiceMonth', 'productId', 'fromBinId', 'toBinId', 'batchNumber', 'expiryDate', 'quantity', 'invoiceId'];
 
+/** Ensures API URL is absolute (fixes Vercel 404 when https:// is missing). */
+function normalizeBaseUrl(url) {
+  let u = (url || '').trim().replace(/\/$/, '');
+  if (!u) return 'http://localhost:3000';
+  if (/^https?:\/\//i.test(u)) return u;
+  if (u.startsWith('localhost') || u.startsWith('127.0.0.1')) {
+    return `http://${u}`;
+  }
+  return `https://${u}`;
+}
+
 function getDefaultBaseUrl() {
-  return (window.API_BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
+  return normalizeBaseUrl(window.API_BASE_URL || 'http://localhost:3000');
+}
+
+function getBaseUrl() {
+  return normalizeBaseUrl($('baseUrl').value);
 }
 
 function loadConfig() {
   const savedBase = localStorage.getItem('wms_baseUrl');
-  $('baseUrl').value = savedBase || getDefaultBaseUrl();
+  $('baseUrl').value = normalizeBaseUrl(savedBase || getDefaultBaseUrl());
 
   fields.filter((k) => k !== 'baseUrl').forEach((key) => {
     const saved = localStorage.getItem(`wms_${key}`);
@@ -17,6 +32,8 @@ function loadConfig() {
 }
 
 function saveConfig() {
+  const normalized = getBaseUrl();
+  $('baseUrl').value = normalized;
   fields.forEach((key) => {
     if ($(key)) localStorage.setItem(`wms_${key}`, $(key).value);
   });
@@ -34,8 +51,23 @@ function showHint(id, msg) {
   $(id).textContent = msg;
 }
 
+async function parseResponse(res) {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    if (text.startsWith('<!') || text.startsWith('The page')) {
+      throw new Error(
+        `Server returned HTML instead of JSON (status ${res.status}). ` +
+        'Check API Base URL includes https:// and points to your Railway backend.'
+      );
+    }
+    return text;
+  }
+}
+
 async function api(method, path, body, skipHeaders = false) {
-  const baseUrl = $('baseUrl').value.replace(/\/$/, '');
+  const baseUrl = getBaseUrl();
   const headers = { 'Content-Type': 'application/json' };
 
   if (!skipHeaders) {
@@ -47,12 +79,7 @@ async function api(method, path, body, skipHeaders = false) {
   if (body) opts.body = JSON.stringify(body);
 
   const res = await fetch(`${baseUrl}${path}`, opts);
-  let data;
-  try {
-    data = await res.json();
-  } catch {
-    data = await res.text();
-  }
+  const data = await parseResponse(res);
 
   showResponse(res.status, data);
   return { status: res.status, data };
@@ -62,20 +89,27 @@ let seedInfo = null;
 
 async function loadSeedInfo() {
   try {
-    const baseUrl = $('baseUrl').value.replace(/\/$/, '');
+    const baseUrl = getBaseUrl();
+    $('baseUrl').value = baseUrl;
+
     const res = await fetch(`${baseUrl}/api/config/seed-info`);
-    const json = await res.json();
+    const json = await parseResponse(res);
 
     if (!res.ok) {
-      throw new Error(json.message || 'Failed to load seed info from backend');
+      throw new Error(json.message || json.error || `Failed to load seed info (${res.status})`);
+    }
+
+    if (!json.data) {
+      throw new Error('Invalid response — expected { data: ... }. Is the database seeded?');
     }
 
     seedInfo = json.data;
     showHint('seedStatus', `Loaded seed data (${seedInfo.generatedAt}). Use "Client A" or "Client B" buttons.`);
+    showResponse(res.status, json);
     return seedInfo;
   } catch (err) {
     showHint('seedStatus', err.message);
-    showResponse(0, { error: err.message });
+    showResponse(0, { error: err.message, hint: 'API URL must be like https://your-app.up.railway.app' });
     return null;
   }
 }

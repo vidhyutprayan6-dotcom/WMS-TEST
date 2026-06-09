@@ -1,6 +1,13 @@
 const fs = require('fs');
 
-const apiUrl = (process.env.API_URL || 'http://localhost:3000').replace(/\/$/, '');
+function normalizeApiUrl(url) {
+  let u = (url || 'http://localhost:3000').trim().replace(/\/$/, '');
+  if (/^https?:\/\//i.test(u)) return u;
+  if (u.startsWith('localhost') || u.startsWith('127.0.0.1')) return `http://${u}`;
+  return `https://${u}`;
+}
+
+const apiUrl = normalizeApiUrl(process.env.API_URL);
 
 fs.writeFileSync(
   'config.js',

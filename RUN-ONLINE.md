@@ -173,5 +173,6 @@ npm run dev
 | Railway build fails | Check Root Directory = `backend`, check Deploy logs |
 | Railway 502 | Missing `DATABASE_URL` in Variables |
 | CORS error | Set `FRONTEND_URL` on Railway to exact Vercel URL |
-| Load Seed IDs fails | Run `npm run prisma:seed` in backend folder |
+| Load Seed IDs 404 / JSON error | API URL missing `https://` — use full URL like `https://xxx.up.railway.app`. Clear browser cache or click Save Config after fix. |
+| `Unexpected token 'T'` error | Same as above — browser called Vercel instead of Railway |
 | `npm serve` not found | Use `npm run dev` in frontend folder |
