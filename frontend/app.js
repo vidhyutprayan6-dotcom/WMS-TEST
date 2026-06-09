@@ -496,12 +496,32 @@ function syncConditionsFromDom() {
   });
 }
 
+function setRunButtonLoading(loading) {
+  const btn = $('runTestBtn');
+  if (!btn) return;
+
+  if (loading) {
+    btn.disabled = true;
+    btn.classList.add('is-loading');
+    btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span>Loading...</span>';
+    return;
+  }
+
+  btn.disabled = false;
+  btn.classList.remove('is-loading');
+  const test = TESTS[currentTestId];
+  btn.textContent = test?.runLabel || 'Run Test';
+}
+
 function renderConditions(testId) {
   const test = TESTS[testId];
   $('testTitle').textContent = test.title;
   $('testSummary').textContent = test.summary;
-  $('runTestBtn').textContent = test.runLabel || 'Run Test';
-  $('runTestBtn').className = test.edge ? 'btn-danger' : 'btn-primary';
+  const runBtn = $('runTestBtn');
+  runBtn.className = test.edge ? 'btn-danger' : 'btn-primary';
+  runBtn.disabled = false;
+  runBtn.classList.remove('is-loading');
+  runBtn.textContent = test.runLabel || 'Run Test';
 
   const container = $('conditionsBody');
   const v = (key) => ($(key)?.value || '').trim();
@@ -684,6 +704,9 @@ function fillClientAExample(silent = false) {
 }
 
 async function runCurrentTest() {
+  const btn = $('runTestBtn');
+  if (btn?.disabled) return;
+
   syncConditionsFromDom();
   saveConfig(true);
 
@@ -692,67 +715,72 @@ async function runCurrentTest() {
     return;
   }
 
-  if (currentTestId === 'inventory') {
-    await api('GET', '/api/inventory');
-    return;
-  }
+  setRunButtonLoading(true);
+  try {
+    if (currentTestId === 'inventory') {
+      await api('GET', '/api/inventory');
+      return;
+    }
 
-  if (currentTestId === 'billing') {
-    await api('POST', '/api/billing/generate', { month: $('invoiceMonth').value.trim() });
-    return;
-  }
+    if (currentTestId === 'billing') {
+      await api('POST', '/api/billing/generate', { month: $('invoiceMonth').value.trim() });
+      return;
+    }
 
-  if (currentTestId === 'transfer') {
-    await api('POST', '/api/inventory/transfer', {
-      productId: $('productId').value.trim(),
-      fromBinId: $('fromBinId').value.trim(),
-      toBinId: $('toBinId').value.trim(),
-      batchNumber: $('batchNumber').value.trim(),
-      expiryDate: $('expiryDate').value,
-      quantity: Number($('quantity').value),
-    });
-    return;
-  }
+    if (currentTestId === 'transfer') {
+      await api('POST', '/api/inventory/transfer', {
+        productId: $('productId').value.trim(),
+        fromBinId: $('fromBinId').value.trim(),
+        toBinId: $('toBinId').value.trim(),
+        batchNumber: $('batchNumber').value.trim(),
+        expiryDate: $('expiryDate').value,
+        quantity: Number($('quantity').value),
+      });
+      return;
+    }
 
-  if (currentTestId === 'audit') {
-    await api('GET', '/api/audit-logs');
-    return;
-  }
+    if (currentTestId === 'audit') {
+      await api('GET', '/api/audit-logs');
+      return;
+    }
 
-  if (currentTestId === 'edge-insufficient') {
-    fillClientAExample(true);
-    syncConditionsFromDom();
-    showToast('info', 'Edge case test', 'Transfer qty 9999 — expect insufficient stock.', 3000);
-    await api('POST', '/api/inventory/transfer', {
-      productId: $('productId').value.trim(),
-      fromBinId: $('fromBinId').value.trim(),
-      toBinId: $('toBinId').value.trim(),
-      batchNumber: $('batchNumber').value.trim(),
-      expiryDate: $('expiryDate').value,
-      quantity: 9999,
-    });
-    return;
-  }
+    if (currentTestId === 'edge-insufficient') {
+      fillClientAExample(true);
+      syncConditionsFromDom();
+      showToast('info', 'Edge case test', 'Transfer qty 9999 — expect insufficient stock.', 3000);
+      await api('POST', '/api/inventory/transfer', {
+        productId: $('productId').value.trim(),
+        fromBinId: $('fromBinId').value.trim(),
+        toBinId: $('toBinId').value.trim(),
+        batchNumber: $('batchNumber').value.trim(),
+        expiryDate: $('expiryDate').value,
+        quantity: 9999,
+      });
+      return;
+    }
 
-  if (currentTestId === 'edge-samebin') {
-    fillClientAExample(true);
-    syncConditionsFromDom();
-    const binId = $('fromBinId').value.trim();
-    showToast('info', 'Edge case test', 'Same source and destination bin.', 3000);
-    await api('POST', '/api/inventory/transfer', {
-      productId: $('productId').value.trim(),
-      fromBinId: binId,
-      toBinId: binId,
-      batchNumber: $('batchNumber').value.trim(),
-      expiryDate: $('expiryDate').value,
-      quantity: 10,
-    });
-    return;
-  }
+    if (currentTestId === 'edge-samebin') {
+      fillClientAExample(true);
+      syncConditionsFromDom();
+      const binId = $('fromBinId').value.trim();
+      showToast('info', 'Edge case test', 'Same source and destination bin.', 3000);
+      await api('POST', '/api/inventory/transfer', {
+        productId: $('productId').value.trim(),
+        fromBinId: binId,
+        toBinId: binId,
+        batchNumber: $('batchNumber').value.trim(),
+        expiryDate: $('expiryDate').value,
+        quantity: 10,
+      });
+      return;
+    }
 
-  if (currentTestId === 'edge-notenant') {
-    showToast('info', 'Edge case test', 'Request without tenant headers.', 3000);
-    await api('GET', '/api/inventory', null, true);
+    if (currentTestId === 'edge-notenant') {
+      showToast('info', 'Edge case test', 'Request without tenant headers.', 3000);
+      await api('GET', '/api/inventory', null, true);
+    }
+  } finally {
+    setRunButtonLoading(false);
   }
 }
 
