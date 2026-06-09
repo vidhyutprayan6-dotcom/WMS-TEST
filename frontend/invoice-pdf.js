@@ -1,28 +1,44 @@
-/** Client-side invoice PDF generation (no backend changes). */
+/** Client-side invoice PDF generation — uses vendored jsPDF + pdf.js (no CDN). */
 (function (global) {
   function money(n) {
     return '$' + Number(n ?? 0).toFixed(2);
   }
 
+  function getJsPDF() {
+    const lib = global.jspdf;
+    if (!lib) {
+      throw new Error('PDF library not loaded. Run npm run build in frontend/ and refresh.');
+    }
+    return lib.jsPDF || lib;
+  }
+
+  function getPdfJs() {
+    const lib = global.pdfjsLib;
+    if (!lib) {
+      throw new Error('PDF preview library not loaded. Run npm run build in frontend/ and refresh.');
+    }
+    return lib;
+  }
+
   function buildInvoicePdf(invoice) {
-    const { jsPDF } = global.jspdf;
+    const jsPDF = getJsPDF();
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const d = invoice.data || invoice;
     const client = d.client || {};
     const totals = d.totals || {};
     const lineItems = d.lineItems || [];
 
-    doc.setFontSize(18);
-    doc.setTextColor(26, 58, 92);
-    doc.text('3PL Storage Invoice', 14, 20);
+    doc.setFontSize(20);
+    doc.setTextColor(15, 23, 42);
+    doc.text('3PL Storage Invoice', 14, 22);
 
     doc.setFontSize(10);
-    doc.setTextColor(60, 60, 60);
-    doc.text(`Client: ${client.name || '—'}`, 14, 30);
-    doc.text(`Billing type: ${client.billingType || '—'}`, 14, 36);
-    doc.text(`Invoice month: ${d.month || '—'}`, 14, 42);
-    doc.text(`Invoice ID: ${d.invoiceId || '—'}`, 14, 48);
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 54);
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Client: ${client.name || '—'}`, 14, 32);
+    doc.text(`Billing type: ${client.billingType || '—'}`, 14, 38);
+    doc.text(`Invoice month: ${d.month || '—'}`, 14, 44);
+    doc.text(`Invoice ID: ${d.invoiceId || '—'}`, 14, 50);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 56);
 
     const rows = lineItems.map((item) => [
       item.description,
@@ -31,23 +47,41 @@
       money(item.amount),
     ]);
 
+    if (rows.length === 0) {
+      rows.push(['No line items', '—', '—', '—']);
+    }
+
     doc.autoTable({
-      startY: 62,
+      startY: 64,
       head: [['Description', 'Qty', 'Rate', 'Amount']],
       body: rows,
       theme: 'grid',
-      headStyles: { fillColor: [26, 58, 92], textColor: 255 },
-      styles: { fontSize: 9, cellPadding: 3 },
-      columnStyles: { 3: { halign: 'right' }, 2: { halign: 'right' } },
+      headStyles: { fillColor: [15, 23, 42], textColor: 255, fontStyle: 'bold' },
+      styles: { fontSize: 9, cellPadding: 4, textColor: [30, 41, 59] },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      columnStyles: {
+        0: { cellWidth: 90 },
+        1: { halign: 'center', cellWidth: 20 },
+        2: { halign: 'right', cellWidth: 30 },
+        3: { halign: 'right', cellWidth: 35 },
+      },
     });
 
-    const finalY = doc.lastAutoTable.finalY + 10;
-    doc.setFontSize(11);
-    doc.text(`Storage total:    ${money(totals.storage)}`, 120, finalY);
-    doc.text(`Inbound total:    ${money(totals.inbound)}`, 120, finalY + 6);
-    doc.text(`Outbound total:   ${money(totals.outbound)}`, 120, finalY + 12);
+    const finalY = doc.lastAutoTable.finalY + 12;
+    doc.setFontSize(10);
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Storage total:`, 120, finalY);
+    doc.text(money(totals.storage), 190, finalY, { align: 'right' });
+    doc.text(`Inbound total:`, 120, finalY + 7);
+    doc.text(money(totals.inbound), 190, finalY + 7, { align: 'right' });
+    doc.text(`Outbound total:`, 120, finalY + 14);
+    doc.text(money(totals.outbound), 190, finalY + 14, { align: 'right' });
+
+    doc.setFontSize(12);
+    doc.setTextColor(15, 23, 42);
     doc.setFont(undefined, 'bold');
-    doc.text(`Grand total:      ${money(totals.grandTotal)}`, 120, finalY + 20);
+    doc.text(`Grand total:`, 120, finalY + 24);
+    doc.text(money(totals.grandTotal), 190, finalY + 24, { align: 'right' });
 
     return doc;
   }
@@ -75,7 +109,7 @@
         </div>
         <table class="data-table invoice-table">
           <thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
-          <tbody>${rows}</tbody>
+          <tbody>${rows || '<tr><td colspan="4">No line items</td></tr>'}</tbody>
           <tfoot>
             <tr><td colspan="3">Storage</td><td class="num">${money(totals.storage)}</td></tr>
             <tr><td colspan="3">Inbound handling</td><td class="num">${money(totals.inbound)}</td></tr>
@@ -93,6 +127,33 @@
       .replace(/>/g, '&gt;');
   }
 
+  async function renderFirstPage(invoice) {
+    const doc = buildInvoicePdf(invoice);
+    const blob = doc.output('blob');
+    const arrayBuffer = await blob.arrayBuffer();
+
+    const pdfjs = getPdfJs();
+    if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+      pdfjs.GlobalWorkerOptions.workerSrc = '/vendor/pdf.worker.min.js';
+    }
+
+    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+    const page = await pdf.getPage(1);
+    const scale = 1.6;
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    return {
+      blob,
+      imageDataUrl: canvas.toDataURL('image/png'),
+    };
+  }
+
   global.InvoicePdf = {
     build: buildInvoicePdf,
     blob(invoice) {
@@ -103,10 +164,7 @@
       const name = filename || `invoice-${d.month || 'report'}.pdf`;
       buildInvoicePdf(invoice).save(name);
     },
-    previewUrl(invoice) {
-      const blob = buildInvoicePdf(invoice).output('blob');
-      return URL.createObjectURL(blob);
-    },
+    renderFirstPage,
     renderHtml: renderInvoiceHtml,
   };
 })(window);

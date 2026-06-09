@@ -5,10 +5,17 @@
   "scripts": {
     "build": "node build.js",
     "vercel-build": "node build.js",
+    "predev": "node build.js",
+    "prestart": "node build.js",
     "start": "serve . -l 5173",
     "dev": "serve . -l 5173"
   },
   "devDependencies": {
     "serve": "^14.2.4"
+  },
+  "dependencies": {
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
+    "pdfjs-dist": "^3.11.174"
   }
 }

@@ -13,3 +13,4 @@ backend/prisma/*.db-journal
 
 # Frontend
 frontend/config.js
+frontend/vendor/

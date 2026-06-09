@@ -27,8 +27,8 @@ const fields = [
 const TESTS = {
   setup: {
     id: 'setup',
-    title: 'Connection & Tenant',
-    summary: 'Configure API URL and tenant headers. Seed data auto-fills all test conditions.',
+    title: 'WMS 3PL Test Platform',
+    summary: 'Warehouse Management System — 3PL storage billing, inventory transfer, and multi-tenant API evaluation.',
     method: null,
     runLabel: 'Save Config',
   },
@@ -43,7 +43,7 @@ const TESTS = {
   billing: {
     id: 'billing',
     title: 'Generate Invoice',
-    summary: 'POST /api/billing/generate — creates a monthly 3PL storage invoice. Results show a formatted PDF preview.',
+    summary: 'POST /api/billing/generate — creates a monthly 3PL storage invoice. Click Load PDF to preview and download.',
     method: 'POST',
     path: '/api/billing/generate',
     runLabel: 'Generate Invoice',
@@ -98,7 +98,6 @@ let seedInfo = null;
 let currentTestId = 'setup';
 let lastResponse = null;
 let lastInvoiceData = null;
-let pdfPreviewUrl = null;
 let showJson = false;
 
 function isProductionHost() {
@@ -376,13 +375,6 @@ async function api(method, path, body, skipHeaders = false) {
   }
 }
 
-function revokePdfUrl() {
-  if (pdfPreviewUrl) {
-    URL.revokeObjectURL(pdfPreviewUrl);
-    pdfPreviewUrl = null;
-  }
-}
-
 function showResults(status, data, method, path) {
   lastResponse = { status, data, method, path };
   showJson = false;
@@ -396,7 +388,6 @@ function showResults(status, data, method, path) {
   $('jsonOutput').classList.add('hidden');
   $('toggleJsonBtn').classList.add('hidden');
   $('downloadPdfBtn').classList.add('hidden');
-  revokePdfUrl();
 
   const body = $('resultsBody');
   body.classList.remove('hidden');
@@ -413,6 +404,8 @@ function showResults(status, data, method, path) {
     lastInvoiceData = payload;
     renderInvoiceResults(payload);
     $('downloadPdfBtn').classList.remove('hidden');
+    $('downloadPdfBtn').textContent = 'Load PDF';
+    $('downloadPdfBtn').disabled = false;
     $('toggleJsonBtn').classList.remove('hidden');
     return;
   }
@@ -448,12 +441,17 @@ function showResults(status, data, method, path) {
 
 function renderInvoiceResults(invoice) {
   const body = $('resultsBody');
-  pdfPreviewUrl = InvoicePdf.previewUrl({ data: invoice });
+  const totals = invoice.totals || {};
   body.innerHTML = `
+    <div class="result-summary"><p class="ok-text">Invoice generated — ${escapeHtml(invoice.month)} · ${escapeHtml(money(totals.grandTotal))}</p></div>
     ${InvoicePdf.renderHtml({ data: invoice })}
-    <div class="pdf-frame-wrap">
-      <iframe title="Invoice PDF preview" src="${pdfPreviewUrl}"></iframe>
+    <div id="pdfPreviewArea" class="pdf-preview-area">
+      <p class="hint">Click <strong>Load PDF</strong> above to preview page 1 and download the file.</p>
     </div>`;
+}
+
+function money(n) {
+  return '$' + Number(n ?? 0).toFixed(2);
 }
 
 function renderInventoryTable(items) {
@@ -510,10 +508,15 @@ function renderConditions(testId) {
 
   if (testId === 'setup') {
     container.innerHTML = `
+      <div class="project-hero">
+        <h2>WMS 3PL Test Platform</h2>
+        <p>Evaluate storage billing, inventory transfers, and multi-tenant APIs for the 3PL warehouse management system.</p>
+      </div>
       <div class="test-info">
         <dl>
           <dt>API endpoint</dt><dd>${escapeHtml(v('baseUrl') || getDefaultBaseUrl())}</dd>
           <dt>Swagger docs</dt><dd>${escapeHtml(v('baseUrl') || getDefaultBaseUrl())}/api/docs</dd>
+          <dt>Seed data</dt><dd>${seedInfo ? 'Loaded automatically on startup' : 'Loading...'}</dd>
         </dl>
       </div>
       <div class="grid-1">
@@ -521,7 +524,7 @@ function renderConditions(testId) {
         <label>x-client-id<input type="text" data-field="clientId" value="${escapeHtml(v('clientId'))}" placeholder="Auto-filled from seed" /></label>
         <label>x-user-id<input type="text" data-field="userId" value="${escapeHtml(v('userId'))}" placeholder="Auto-filled from seed" /></label>
       </div>
-      <p class="hint">Click <strong>Load Seed IDs</strong> above — Client A is applied automatically.</p>`;
+      <p class="hint">Test IDs load automatically. Client A is selected by default — switch tenant with the pills above.</p>`;
     return;
   }
 
@@ -534,7 +537,7 @@ function renderConditions(testId) {
       <div class="grid-1">
         <label>Invoice Month (YYYY-MM)<input type="text" data-field="invoiceMonth" value="${escapeHtml(v('invoiceMonth') || '2025-12')}" /></label>
       </div>
-      <p class="hint">Results appear as a formatted table and PDF preview.</p>`;
+      <p class="hint">After generation, click <strong>Load PDF</strong> in Results to preview page 1 and download.</p>`;
     return;
   }
 
@@ -583,28 +586,47 @@ function selectTest(testId) {
   renderConditions(testId);
 }
 
-async function loadSeedInfo() {
-  const result = await api('GET', '/api/config/seed-info', null, true);
-  if (result.status !== 200 || !result.data?.data) {
-    showToast('error', 'Seed load failed', 'Could not load test IDs from the API.');
+async function fetchSeedInfo(silent = true) {
+  const baseUrl = getBaseUrl();
+  $('baseUrl').value = baseUrl;
+
+  try {
+    const res = await fetch(`${baseUrl}/api/config/seed-info`);
+    const data = await parseResponse(res);
+
+    if (res.status !== 200 || !data?.data) {
+      if (!silent) showToast('error', 'Seed load failed', 'Could not load test IDs from the API.');
+      return null;
+    }
+
+    seedInfo = data.data;
+    useClient('clientA', silent);
+    fillClientAExample(true);
+    updateStatusBar();
+    if (currentTestId === 'setup') renderConditions('setup');
+
+    if (!silent) {
+      const src = seedInfo.source === 'database' ? 'from database' : 'demo/offline mode';
+      showToast('success', 'Seed IDs loaded', `Test data ready (${src}). Client A applied.`);
+    }
+    return seedInfo;
+  } catch (err) {
+    const message = err.message?.includes('fetch')
+      ? `Cannot reach backend at ${baseUrl}`
+      : err.message;
+    if (!silent) showToast('error', 'Seed load failed', message);
     return null;
   }
-  seedInfo = result.data.data;
-  useClient('clientA');
-  fillClientAExample(true);
-  updateStatusBar();
-  renderConditions(currentTestId);
-  return seedInfo;
 }
 
-function useClient(key) {
+function useClient(key, silent = false) {
   if (!seedInfo) {
-    showToast('warning', 'Load seed first', 'Click "Load Seed IDs" in the header.');
+    if (!silent) showToast('warning', 'Seed not ready', 'Waiting for test data — check API connection.');
     return;
   }
   const client = seedInfo.clients[key];
   if (!client) {
-    showToast('error', 'Client not found', `No seed data for "${key}".`);
+    if (!silent) showToast('error', 'Client not found', `No seed data for "${key}".`);
     return;
   }
   $('clientId').value = client.id;
@@ -612,7 +634,7 @@ function useClient(key) {
   saveConfig(true);
   updateStatusBar();
   renderConditions(currentTestId);
-  showToast('success', `Tenant: ${client.name}`, 'Client ID and User ID applied.');
+  if (!silent) showToast('success', `Tenant: ${client.name}`, 'Client ID and User ID applied.');
 }
 
 function fillClientAExample(silent = false) {
@@ -706,13 +728,12 @@ document.querySelectorAll('.nav-item').forEach((btn) => {
   btn.addEventListener('click', () => selectTest(btn.dataset.test));
 });
 
-$('loadSeedBtn').addEventListener('click', loadSeedInfo);
 $('useClientABtn').addEventListener('click', () => {
-  if (!seedInfo) loadSeedInfo().then(() => useClient('clientA'));
+  if (!seedInfo) fetchSeedInfo(false).then(() => useClient('clientA'));
   else useClient('clientA');
 });
 $('useClientBBtn').addEventListener('click', () => {
-  if (!seedInfo) loadSeedInfo().then(() => useClient('clientB'));
+  if (!seedInfo) fetchSeedInfo(false).then(() => useClient('clientB'));
   else useClient('clientB');
 });
 $('runTestBtn').addEventListener('click', runCurrentTest);
@@ -724,13 +745,45 @@ $('toggleJsonBtn').addEventListener('click', () => {
   $('toggleJsonBtn').textContent = showJson ? 'Show Preview' : 'Show JSON';
 });
 
-$('downloadPdfBtn').addEventListener('click', () => {
+$('downloadPdfBtn').addEventListener('click', async () => {
   if (!lastInvoiceData) {
     showToast('warning', 'No invoice', 'Generate an invoice first.');
     return;
   }
-  InvoicePdf.download({ data: lastInvoiceData });
-  showToast('success', 'PDF downloaded', `invoice-${lastInvoiceData.month}.pdf`);
+
+  const btn = $('downloadPdfBtn');
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+
+  try {
+    const { blob, imageDataUrl } = await InvoicePdf.renderFirstPage({ data: lastInvoiceData });
+    const area = document.getElementById('pdfPreviewArea');
+    if (area) {
+      area.innerHTML = `
+        <p class="pdf-preview-label">Page 1 preview</p>
+        <div class="pdf-preview-frame">
+          <img class="pdf-preview-img" src="${imageDataUrl}" alt="Invoice PDF page 1" />
+        </div>`;
+    }
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `invoice-${lastInvoiceData.month}.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
+
+    showToast('success', 'PDF loaded', `invoice-${lastInvoiceData.month}.pdf downloaded`);
+  } catch (err) {
+    showToast('error', 'PDF failed', err.message || 'Could not generate invoice PDF.', 8000);
+    const area = document.getElementById('pdfPreviewArea');
+    if (area) {
+      area.innerHTML = `<div class="error-box">${escapeHtml(err.message || 'PDF generation failed.')}</div>`;
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Load PDF';
+  }
 });
 
 $('navSearch')?.addEventListener('input', (e) => {
@@ -741,6 +794,15 @@ $('navSearch')?.addEventListener('input', (e) => {
   });
 });
 
-loadConfig();
-selectTest('setup');
-showToast('info', 'Test Platform ready', 'Load Seed IDs to begin — tests run from the sidebar.', 4000);
+async function initApp() {
+  loadConfig();
+  selectTest('setup');
+  const loaded = await fetchSeedInfo(true);
+  if (loaded) {
+    showToast('success', 'Test Platform ready', 'Seed data loaded — Client A active. Select a test from the sidebar.', 4000);
+  } else {
+    showToast('warning', 'Test Platform ready', 'Could not load seed data — check API connection in Connection & Tenant.', 6000);
+  }
+}
+
+initApp();
