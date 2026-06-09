@@ -31,7 +31,6 @@ interface DemoInventoryItem {
   volumeM3: number;
 }
 
-/** Minimal in-memory data — mirrors prisma/seed.ts (local dev when DB unavailable). */
 class DemoStore {
   private readonly transferDomain = new InventoryTransferDomain();
   private readonly billingEngine = new BillingEngine();

@@ -1,6 +1,3 @@
--- STEP 1 — Supabase SQL Editor: create tables (client test requirements only)
--- Then run seed.sql
-
 CREATE TYPE "BillingType" AS ENUM ('PALLET', 'VOLUME');
 CREATE TYPE "MovementType" AS ENUM ('INBOUND', 'OUTBOUND', 'TRANSFER');
 

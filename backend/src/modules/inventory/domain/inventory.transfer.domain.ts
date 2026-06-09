@@ -13,10 +13,6 @@ export interface TransferValidationInput {
   toBinId: string;
 }
 
-/**
- * Domain validation for inventory transfers.
- * Encapsulates business rules separate from persistence.
- */
 export class InventoryTransferDomain {
   validateTransfer(input: TransferValidationInput): void {
     if (input.fromBinId === input.toBinId) {
@@ -55,7 +51,6 @@ export class InventoryTransferDomain {
     }
   }
 
-  /** Derives pallet and volume footprint for a partial quantity transfer. */
   computeTransferFootprint(
     sourceQty: number,
     sourcePallets: number,

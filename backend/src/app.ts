@@ -29,6 +29,9 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'wms-3pl-backend' });
 });
 
+app.get('/api/docs/openapi.json', (_req, res) => {
+  res.json(swaggerSpec);
+});
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/config', configRoutes);
 app.use('/api/billing', billingRoutes);

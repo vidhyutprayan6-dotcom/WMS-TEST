@@ -1,5 +1,3 @@
--- STEP 2 — Minimal test data (2 tenants, 1 product each, billing movements)
-
 TRUNCATE TABLE
   "invoice_line_items", "invoices", "audit_logs", "stock_movements",
   "inventory", "products", "billing_rates", "users", "bins", "warehouses", "clients"

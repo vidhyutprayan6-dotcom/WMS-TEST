@@ -1,7 +1,3 @@
-/**
- * API test suite — run: node scripts/test-apis.js
- * Requires backend running on PORT (default 3006)
- */
 const BASE = process.env.API_URL || 'http://localhost:3006';
 
 const CLIENT_A = 'a1000000-0000-4000-8000-000000000001';
@@ -39,34 +35,27 @@ async function run() {
 
   const h = { 'x-client-id': CLIENT_A, 'x-user-id': USER_A };
 
-  // Health
   const health = await req('GET', '/health');
   ok('GET /health', health.status === 200);
 
-  // Seed info
   const seed = await req('GET', '/api/config/seed-info');
   ok('GET /api/config/seed-info', seed.status === 200 && seed.data?.data?.clients?.clientA);
 
-  // List inventory
   const inv = await req('GET', '/api/inventory', null, h);
   ok('GET /api/inventory', inv.status === 200 && Array.isArray(inv.data?.data));
 
-  // Generate invoice (Requirement A)
   const bill = await req('POST', '/api/billing/generate', { month: '2025-12' }, h);
   ok('POST /api/billing/generate', bill.status === 200 && bill.data?.data?.invoiceId);
   invoiceId = bill.data?.data?.invoiceId;
 
-  // Get invoice
   if (invoiceId) {
     const getInv = await req('GET', `/api/invoices/${invoiceId}`, null, h);
     ok('GET /api/invoices/:id', getInv.status === 200);
   }
 
-  // Audit logs
   const audit = await req('GET', '/api/audit-logs', null, h);
   ok('GET /api/audit-logs', audit.status === 200 && Array.isArray(audit.data?.data));
 
-  // Transfer (Requirement B)
   const transfer = await req('POST', '/api/inventory/transfer', {
     productId: PRODUCT_A,
     fromBinId: BIN_A1,
@@ -77,21 +66,18 @@ async function run() {
   }, h);
   ok('POST /api/inventory/transfer', transfer.status === 200, `qty ${transfer.data?.data?.quantity}`);
 
-  // Validation: insufficient stock
   const insuf = await req('POST', '/api/inventory/transfer', {
     productId: PRODUCT_A, fromBinId: BIN_A1, toBinId: BIN_A2,
     batchNumber: 'LOT-001', expiryDate: '2027-01-01', quantity: 9999,
   }, h);
   ok('Validation: insufficient stock → 400', insuf.status === 400 && insuf.data?.error === 'INSUFFICIENT_STOCK', insuf.data?.message);
 
-  // Validation: same bin
   const sameBin = await req('POST', '/api/inventory/transfer', {
     productId: PRODUCT_A, fromBinId: BIN_A1, toBinId: BIN_A1,
     batchNumber: 'LOT-001', expiryDate: '2027-01-01', quantity: 10,
   }, h);
   ok('Validation: same bin → 400', sameBin.status === 400 && sameBin.data?.error === 'SAME_BIN_TRANSFER', sameBin.data?.message);
 
-  // Missing tenant
   const noTenant = await req('GET', '/api/inventory');
   ok('Missing tenant headers → 400', noTenant.status === 400 && noTenant.data?.error === 'TENANT_REQUIRED', noTenant.data?.message);
 

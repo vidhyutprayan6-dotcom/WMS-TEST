@@ -30,10 +30,6 @@ export interface MovementFeeInput {
   rate: number;
 }
 
-/**
- * Pure domain logic for 3PL storage billing.
- * Keeps calculation rules isolated from persistence and HTTP layers.
- */
 export class BillingEngine {
   calculateStorageFee(input: StorageInput): number {
     const { billingType, occupiedPallets, volumeM3, dailyStorageRate, daysInMonth } = input;

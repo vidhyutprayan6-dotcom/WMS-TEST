@@ -1,10 +1,6 @@
 import { execSync } from 'child_process';
 import { resetDbCheck } from './database/connection';
 
-/**
- * Runs migrations + seed after the HTTP server is already listening.
- * Railway healthchecks /health immediately — blocking in CMD caused deploy failures.
- */
 export async function bootstrapDatabase(): Promise<void> {
   if (process.env.SKIP_DB_BOOTSTRAP === 'true') {
     console.log('SKIP_DB_BOOTSTRAP=true — skipping migrate/seed');

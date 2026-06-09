@@ -3,125 +3,99 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WMS 3PL — Test UI</title>
+  <title>WMS 3PL — Test Platform</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/styles.css" />
   <script src="/config.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
-  <header>
-    <div class="brand">
-      <img src="/assets/logo.svg" alt="WMS 3PL" class="brand-logo" width="220" height="48" />
-      <div class="brand-text">
-        <h1>Test Console</h1>
-        <p>Storage billing · Inventory transfer · Multi-tenant · Audit trail</p>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <img src="/assets/logo.svg" alt="WMS 3PL" class="brand-logo" width="180" height="40" />
+        <span class="topbar-title">Test Platform</span>
       </div>
+      <div class="topbar-status">
+        <span id="connectionStatus" class="status-pill">Not connected</span>
+        <span id="tenantStatus" class="status-pill muted">No tenant</span>
+      </div>
+      <div class="topbar-actions">
+        <button type="button" id="loadSeedBtn" class="btn btn-sm secondary">Load Seed IDs</button>
+        <button type="button" id="useClientABtn" class="btn btn-sm secondary">Client A</button>
+        <button type="button" id="useClientBBtn" class="btn btn-sm secondary">Client B</button>
+      </div>
+    </header>
+
+    <div class="app-body">
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <h3 class="sidebar-heading">Setup</h3>
+          <button type="button" class="nav-item active" data-test="setup">Connection & Tenant</button>
+        </div>
+        <div class="sidebar-section">
+          <h3 class="sidebar-heading">Core API Tests</h3>
+          <button type="button" class="nav-item" data-test="inventory">List Inventory</button>
+          <button type="button" class="nav-item" data-test="billing">Generate Invoice</button>
+          <button type="button" class="nav-item" data-test="transfer">Inventory Transfer</button>
+          <button type="button" class="nav-item" data-test="audit">Audit Logs</button>
+        </div>
+        <div class="sidebar-section">
+          <h3 class="sidebar-heading">Validation Tests</h3>
+          <button type="button" class="nav-item" data-test="edge-insufficient">Insufficient Stock</button>
+          <button type="button" class="nav-item" data-test="edge-samebin">Same Bin Transfer</button>
+          <button type="button" class="nav-item" data-test="edge-notenant">Missing Tenant</button>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <section class="panel panel-conditions">
+          <div class="panel-head">
+            <h2 id="testTitle">Connection & Tenant</h2>
+            <p id="testSummary" class="panel-subtitle">Configure API URL and tenant headers. Seed data auto-fills test conditions.</p>
+          </div>
+          <div id="conditionsBody" class="panel-body"></div>
+          <div class="panel-foot">
+            <button type="button" id="runTestBtn" class="btn primary">Run Test</button>
+          </div>
+        </section>
+
+        <section class="panel panel-results">
+          <div class="panel-head results-head">
+            <div>
+              <h2>Results</h2>
+              <p class="panel-subtitle">Response output for the selected test</p>
+            </div>
+            <div class="results-toolbar">
+              <span id="statusBadge" class="badge">—</span>
+              <button type="button" id="downloadPdfBtn" class="btn btn-sm secondary hidden">Load PDF</button>
+              <button type="button" id="toggleJsonBtn" class="btn btn-sm secondary hidden">Show JSON</button>
+            </div>
+          </div>
+          <div id="resultsBody" class="panel-body results-body">
+            <p class="placeholder">Select a test and click <strong>Run Test</strong>.</p>
+          </div>
+          <pre id="jsonOutput" class="json-output hidden"></pre>
+        </section>
+      </main>
     </div>
-  </header>
+  </div>
 
-  <main>
-    <section class="card config-card">
-      <h2>1. Connection & Tenant</h2>
-      <div class="grid-2">
-        <label>
-          API Base URL (Railway)
-          <input type="text" id="baseUrl" value="http://localhost:3006" placeholder="http://localhost:3006" />
-        </label>
-        <label>
-          Invoice Month (YYYY-MM)
-          <input type="text" id="invoiceMonth" value="2025-12" />
-        </label>
-        <label>
-          x-client-id
-          <input type="text" id="clientId" placeholder="From Load Seed IDs" />
-        </label>
-        <label>
-          x-user-id
-          <input type="text" id="userId" placeholder="From Load Seed IDs" />
-        </label>
-      </div>
-      <div class="btn-row">
-        <button type="button" id="loadSeedBtn" class="btn secondary">Load Seed IDs</button>
-        <button type="button" id="useClientABtn" class="btn secondary">Use Client A</button>
-        <button type="button" id="useClientBBtn" class="btn secondary">Use Client B</button>
-        <button type="button" id="saveConfigBtn" class="btn">Save Config</button>
-      </div>
-      <p id="seedStatus" class="hint">Local: http://localhost:3006 · Production: https://your-app.up.railway.app</p>
-    </section>
-
-    <section class="card">
-      <h2>2. Quick Actions</h2>
-      <div class="btn-row">
-        <button type="button" data-action="inventory" class="btn">List Inventory</button>
-        <button type="button" data-action="billing" class="btn">Generate Invoice</button>
-        <button type="button" data-action="audit" class="btn">Audit Logs</button>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>3. Inventory Transfer</h2>
-      <div class="grid-2">
-        <label>
-          Product ID
-          <input type="text" id="productId" />
-        </label>
-        <label>
-          Quantity
-          <input type="number" id="quantity" value="20" min="1" />
-        </label>
-        <label>
-          From Bin ID
-          <input type="text" id="fromBinId" />
-        </label>
-        <label>
-          To Bin ID
-          <input type="text" id="toBinId" />
-        </label>
-        <label>
-          Batch Number
-          <input type="text" id="batchNumber" value="LOT-001" />
-        </label>
-        <label>
-          Expiry Date
-          <input type="date" id="expiryDate" value="2027-01-01" />
-        </label>
-      </div>
-      <div class="btn-row">
-        <button type="button" id="transferBtn" class="btn primary">Execute Transfer</button>
-        <button type="button" id="fillClientABtn" class="btn secondary">Fill Client A Example</button>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>4. Get Invoice by ID</h2>
-      <div class="grid-2">
-        <label>
-          Invoice ID
-          <input type="text" id="invoiceId" placeholder="From generate invoice response" />
-        </label>
-      </div>
-      <button type="button" id="getInvoiceBtn" class="btn">Get Invoice</button>
-    </section>
-
-    <section class="card">
-      <h2>5. Edge Case Tests (toast shows validation result)</h2>
-      <div class="btn-row">
-        <button type="button" id="testInsufficientBtn" class="btn danger">Insufficient Stock (qty 9999)</button>
-        <button type="button" id="testSameBinBtn" class="btn danger">Same Bin Transfer</button>
-        <button type="button" id="testNoTenantBtn" class="btn danger">Missing Tenant Header</button>
-      </div>
-    </section>
-
-    <section class="card response-card">
-      <div class="response-header">
-        <h2>Response</h2>
-        <span id="statusBadge" class="badge">—</span>
-      </div>
-      <pre id="responseOutput">Run an action to see the API response here.</pre>
-    </section>
-  </main>
+  <!-- Hidden config fields (persisted, not shown in main UI) -->
+  <input type="hidden" id="baseUrl" />
+  <input type="hidden" id="clientId" />
+  <input type="hidden" id="userId" />
+  <input type="hidden" id="invoiceMonth" />
+  <input type="hidden" id="productId" />
+  <input type="hidden" id="fromBinId" />
+  <input type="hidden" id="toBinId" />
+  <input type="hidden" id="batchNumber" />
+  <input type="hidden" id="expiryDate" />
+  <input type="hidden" id="quantity" />
 
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+  <script src="/invoice-pdf.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>

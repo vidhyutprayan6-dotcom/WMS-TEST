@@ -26,7 +26,6 @@ export async function isDatabaseAvailable(): Promise<boolean> {
   return dbAvailable;
 }
 
-/** Demo store is only for local dev when DB is down — never in production. */
 export async function useDemoStore(): Promise<boolean> {
   if (process.env.USE_DEMO_MODE === 'true') return true;
   if (process.env.NODE_ENV === 'production') return false;

@@ -44,6 +44,8 @@ Monorepo for the 3PL/4PL test task with separate frontend and backend deployment
 
 Database design: see `backend/docs/SCHEMA.md`. SQL setup: `backend/supabase/schema.sql` then `seed.sql`.
 
+**API documentation (client submission):** see [`backend/docs/API.md`](backend/docs/API.md) · Swagger UI at `/api/docs` · OpenAPI JSON at `/api/docs/openapi.json`
+
 ## Quick start (local)
 
 ### 1. Backend + Supabase
