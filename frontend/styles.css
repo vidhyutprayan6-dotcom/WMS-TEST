@@ -686,6 +686,24 @@ select:focus {
   margin-top: 0.1rem;
 }
 
+.edge-params {
+  margin-top: 0.75rem;
+}
+
+.edge-params-title {
+  color: var(--green);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.param-omitted {
+  color: var(--yellow) !important;
+  font-style: italic;
+}
+
 /* ── Results ── */
 .results-body {
   display: flex;

@@ -564,12 +564,11 @@ function renderConditions(testId) {
     return;
   }
 
-  if (testId === 'transfer' || (testId.startsWith('edge-') && testId !== 'edge-notenant')) {
-    const isEdge = testId.startsWith('edge-');
+  if (testId === 'transfer') {
     container.innerHTML = `
       <div class="test-info"><dl>
         <dt>Endpoint</dt><dd>POST /api/inventory/transfer</dd>
-        <dt>Expected</dt><dd>${isEdge ? (testId === 'edge-insufficient' ? 'INSUFFICIENT_STOCK error' : 'SAME_BIN_TRANSFER error') : 'Successful bin-to-bin move'}</dd>
+        <dt>Expected</dt><dd>Successful bin-to-bin move</dd>
       </dl></div>
       <div class="grid-2">
         <label>Product ID<input type="text" data-field="productId" value="${escapeHtml(v('productId'))}" /></label>
@@ -579,17 +578,12 @@ function renderConditions(testId) {
         <label>Batch Number<input type="text" data-field="batchNumber" value="${escapeHtml(v('batchNumber') || 'LOT-001')}" /></label>
         <label>Expiry Date<input type="date" data-field="expiryDate" value="${escapeHtml(v('expiryDate') || '2027-01-01')}" /></label>
       </div>
-      ${!isEdge ? '<p class="hint">Transfer fields are pre-filled from Client A seed data.</p>' : ''}`;
+      <p class="hint">Transfer fields are pre-filled from Client A seed data.</p>`;
     return;
   }
 
-  if (testId === 'edge-notenant') {
-    container.innerHTML = `
-      <div class="test-info"><dl>
-        <dt>Endpoint</dt><dd>GET /api/inventory (no tenant headers)</dd>
-        <dt>Expected</dt><dd>401/403 or MISSING_TENANT rejection</dd>
-      </dl></div>
-      <p class="hint">No configuration needed — this test deliberately omits x-client-id and x-user-id.</p>`;
+  if (testId === 'edge-insufficient' || testId === 'edge-samebin' || testId === 'edge-notenant') {
+    container.innerHTML = renderEdgeConditions(testId);
     return;
   }
 
@@ -658,7 +652,7 @@ async function fetchSeedInfo(silent = true) {
     useClient('clientA', silent);
     fillClientAExample(true);
     updateStatusBar();
-    if (currentTestId === 'setup') renderConditions('setup');
+    renderConditions(currentTestId);
 
     if (!silent) {
       const src = seedInfo.source === 'database' ? 'from database' : 'demo/offline mode';
@@ -690,6 +684,102 @@ function useClient(key, silent = false) {
   updateStatusBar();
   renderConditions(currentTestId);
   if (!silent) showToast('success', `Tenant: ${client.name}`, 'Client ID and User ID applied.');
+}
+
+function getClientATransferBase() {
+  const ex = seedInfo?.examples?.clientATransfer;
+  if (ex) {
+    return {
+      productId: ex.productId,
+      fromBinId: ex.fromBinId,
+      toBinId: ex.toBinId,
+      batchNumber: ex.batchNumber,
+      expiryDate: ex.expiryDate,
+    };
+  }
+  return {
+    productId: $('productId').value.trim(),
+    fromBinId: $('fromBinId').value.trim(),
+    toBinId: $('toBinId').value.trim(),
+    batchNumber: $('batchNumber').value.trim() || 'LOT-001',
+    expiryDate: $('expiryDate').value || '2027-01-01',
+  };
+}
+
+function getEdgeTestParams(testId) {
+  if (testId === 'edge-notenant') {
+    return { skipHeaders: true };
+  }
+
+  const base = getClientATransferBase();
+  if (testId === 'edge-insufficient') {
+    return { ...base, quantity: 9999 };
+  }
+  if (testId === 'edge-samebin') {
+    return {
+      ...base,
+      fromBinId: base.fromBinId,
+      toBinId: base.fromBinId,
+      quantity: 10,
+    };
+  }
+  return null;
+}
+
+function renderEdgeParamsBlock(testId) {
+  if (testId === 'edge-notenant') {
+    return `
+      <div class="test-info edge-params">
+        <p class="edge-params-title">Preset test parameters</p>
+        <dl>
+          <dt>Method</dt><dd>GET</dd>
+          <dt>Path</dt><dd>/api/inventory</dd>
+          <dt>x-client-id</dt><dd class="param-omitted">Omitted</dd>
+          <dt>x-user-id</dt><dd class="param-omitted">Omitted</dd>
+        </dl>
+      </div>
+      <p class="hint">No input required — click <strong>Run Edge Test</strong> to verify tenant rejection.</p>`;
+  }
+
+  const params = getEdgeTestParams(testId);
+  const ready = params?.productId && params?.fromBinId;
+  if (!ready) {
+    return `<p class="hint">Waiting for seed data — parameters load automatically on startup.</p>`;
+  }
+
+  return `
+    <div class="test-info edge-params">
+      <p class="edge-params-title">Preset test parameters</p>
+      <dl>
+        <dt>Product ID</dt><dd>${escapeHtml(params.productId)}</dd>
+        <dt>From Bin ID</dt><dd>${escapeHtml(params.fromBinId)}</dd>
+        <dt>To Bin ID</dt><dd>${escapeHtml(params.toBinId)}</dd>
+        <dt>Quantity</dt><dd>${params.quantity}</dd>
+        <dt>Batch Number</dt><dd>${escapeHtml(params.batchNumber)}</dd>
+        <dt>Expiry Date</dt><dd>${escapeHtml(params.expiryDate)}</dd>
+      </dl>
+    </div>
+    <p class="hint">Parameters are fixed for this validation test — click <strong>Run Edge Test</strong>.</p>`;
+}
+
+function renderEdgeConditions(testId) {
+  const expected = testId === 'edge-insufficient'
+    ? 'INSUFFICIENT_STOCK error'
+    : testId === 'edge-samebin'
+      ? 'SAME_BIN_TRANSFER error'
+      : '401/403 or MISSING_TENANT rejection';
+
+  const endpoint = testId === 'edge-notenant'
+    ? 'GET /api/inventory (no tenant headers)'
+    : 'POST /api/inventory/transfer';
+
+  return `
+    <div class="test-info"><dl>
+      <dt>Endpoint</dt><dd>${endpoint}</dd>
+      <dt>Expected</dt><dd>${expected}</dd>
+      <dt>Tenant</dt><dd>${testId === 'edge-notenant' ? 'Headers omitted' : escapeHtml($('clientId').value.trim() || 'Client A')}</dd>
+    </dl></div>
+    ${renderEdgeParamsBlock(testId)}`;
 }
 
 function fillClientAExample(silent = false) {
@@ -747,33 +837,23 @@ async function runCurrentTest() {
       return;
     }
 
-    if (currentTestId === 'edge-insufficient') {
-      fillClientAExample(true);
-      syncConditionsFromDom();
-      showToast('info', 'Edge case test', 'Transfer qty 9999 — expect insufficient stock.', 3000);
+    if (currentTestId === 'edge-insufficient' || currentTestId === 'edge-samebin') {
+      const params = getEdgeTestParams(currentTestId);
+      if (!params?.productId) {
+        showToast('warning', 'Seed not ready', 'Wait for seed data to load, then try again.');
+        return;
+      }
+      const msg = currentTestId === 'edge-insufficient'
+        ? 'Transfer qty 9999 — expect insufficient stock.'
+        : 'Same source and destination bin.';
+      showToast('info', 'Edge case test', msg, 3000);
       await api('POST', '/api/inventory/transfer', {
-        productId: $('productId').value.trim(),
-        fromBinId: $('fromBinId').value.trim(),
-        toBinId: $('toBinId').value.trim(),
-        batchNumber: $('batchNumber').value.trim(),
-        expiryDate: $('expiryDate').value,
-        quantity: 9999,
-      });
-      return;
-    }
-
-    if (currentTestId === 'edge-samebin') {
-      fillClientAExample(true);
-      syncConditionsFromDom();
-      const binId = $('fromBinId').value.trim();
-      showToast('info', 'Edge case test', 'Same source and destination bin.', 3000);
-      await api('POST', '/api/inventory/transfer', {
-        productId: $('productId').value.trim(),
-        fromBinId: binId,
-        toBinId: binId,
-        batchNumber: $('batchNumber').value.trim(),
-        expiryDate: $('expiryDate').value,
-        quantity: 10,
+        productId: params.productId,
+        fromBinId: params.fromBinId,
+        toBinId: params.toBinId,
+        batchNumber: params.batchNumber,
+        expiryDate: params.expiryDate,
+        quantity: params.quantity,
       });
       return;
     }
