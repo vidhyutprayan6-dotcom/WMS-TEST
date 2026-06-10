@@ -67,21 +67,21 @@ body {
 
 .brand-icon {
   align-items: center;
-  background: var(--bg-card);
+  background: #fff;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 50%;
   display: flex;
   flex-shrink: 0;
-  height: 40px;
+  height: 44px;
   justify-content: center;
   overflow: hidden;
-  width: 40px;
+  width: 44px;
 }
 
 .brand-icon img {
-  height: 28px;
-  object-fit: contain;
-  width: 28px;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
 }
 
 .brand-text {
@@ -264,15 +264,21 @@ body {
 
 .avatar {
   align-items: center;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: #fff;
+  border: 1px solid var(--border);
   border-radius: 50%;
-  color: #fff;
   display: flex;
-  font-size: 0.75rem;
-  font-weight: 600;
-  height: 32px;
+  flex-shrink: 0;
+  height: 34px;
   justify-content: center;
-  width: 32px;
+  overflow: hidden;
+  width: 34px;
+}
+
+.avatar img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
 }
 
 /* ── Main content ── */
@@ -614,11 +620,28 @@ select:focus {
 }
 
 .project-hero {
+  align-items: center;
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(59, 130, 246, 0.06) 100%);
   border: 1px solid var(--green-border);
   border-radius: var(--radius-lg);
+  display: flex;
+  gap: 1rem;
   margin-bottom: 0.85rem;
   padding: 1rem 1.1rem;
+}
+
+.project-hero-logo {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  flex-shrink: 0;
+  height: 72px;
+  object-fit: cover;
+  width: 72px;
+}
+
+.project-hero-text {
+  min-width: 0;
 }
 
 .project-hero h2 {

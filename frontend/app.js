@@ -529,8 +529,11 @@ function renderConditions(testId) {
   if (testId === 'setup') {
     container.innerHTML = `
       <div class="project-hero">
-        <h2>WMS 3PL Test Platform</h2>
-        <p>Evaluate storage billing, inventory transfers, and multi-tenant APIs for the 3PL warehouse management system.</p>
+        <img class="project-hero-logo" src="/image/logo.png" alt="WMS 3PL Test Platform" width="72" height="72" />
+        <div class="project-hero-text">
+          <h2>WMS 3PL Test Platform</h2>
+          <p>Evaluate storage billing, inventory transfers, and multi-tenant APIs for the 3PL warehouse management system.</p>
+        </div>
       </div>
       <div class="test-info">
         <dl>
